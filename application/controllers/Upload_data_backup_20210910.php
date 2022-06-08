@@ -12,6 +12,8 @@ class Upload_data extends REST_Controller{
         $this->load->helper('url');
         $this->load->database();
         date_default_timezone_set("Asia/Kuala_Lumpur");
+        $this->b2b_ip = 'http://52.163.112.202';
+        // $this->b2b_ip = 'http://127.0.0.1';
     } 
 
     public function purchase_order_get()
@@ -32,7 +34,6 @@ class Upload_data extends REST_Controller{
         SCode,
         SName AS SName,
         STerm,
-        STel,
         SFax,
         Remark AS Remark,
         SubTotal1,
@@ -211,7 +212,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             // $url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/pomain2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/pomain2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/pomain2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -437,7 +438,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             // $url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/grmain2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/grmain2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/grmain2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -458,7 +459,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.grmain SET hq_update = '3' WHERE RefNo = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.grmain SET hq_update = '3' WHERE RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -549,7 +550,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             // $url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/grda2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/grda2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/grda2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -570,7 +571,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.grmain_dncn SET hq_update = '3' WHERE RefNo = '$row->RefNo' AND transtype = '$row->transtype'");
+                    // $run = $this->db->query("UPDATE backend.grmain_dncn SET hq_update = '3' WHERE RefNo = '$row->RefNo' AND transtype = '$row->transtype'");
             }
         }//close foreach
 
@@ -640,7 +641,8 @@ class Upload_data extends REST_Controller{
         DATE_FORMAT(acc_posting_date,'%Y-%m-%d') AS acc_posting_date,
         RoundAdjNeed, 
         stock_collected AS stock_collected,
-        date_collected AS date_collected 
+        date_collected AS date_collected, 
+        stock_collected_by as stock_collected_by
         FROM backend.dbnotemain
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND billstatus = '1'
@@ -709,7 +711,8 @@ class Upload_data extends REST_Controller{
             DATE_FORMAT(acc_posting_date,'%Y-%m-%d') AS acc_posting_date,
             RoundAdjNeed,
             stock_collected AS stock_collected,
-            date_collected AS date_collected  
+            date_collected AS date_collected,
+            stock_collected_by as stock_collected_by
             FROM backend.dbnotemain
             WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
 
@@ -717,7 +720,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             // $url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/dbnotemain2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/dbnotemain2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/dbnotemain2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -738,7 +741,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.dbnotemain set hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.dbnotemain set hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -881,7 +884,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/cnnotemain2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/cnnotemain2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/cnnotemain2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -902,7 +905,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.cnnotemain SET hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.cnnotemain SET hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -1031,7 +1034,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/cndnamt2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/cndnamt2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/cndnamt2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1052,7 +1055,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.cndn_amt SET hq_update = '3' WHERE cndn_guid = '$row->cndn_guid'");
+                    // $run = $this->db->query("UPDATE backend.cndn_amt SET hq_update = '3' WHERE cndn_guid = '$row->cndn_guid'");
             }
         }//close foreach
 
@@ -1171,7 +1174,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/promo_taxinv2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/promo_taxinv2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/promo_taxinv2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1192,7 +1195,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.promo_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'");
+                    // $run = $this->db->query("UPDATE backend.promo_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'");
             }
         }//close foreach
 
@@ -1307,7 +1310,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/discheme_taxinv2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/discheme_taxinv2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/discheme_taxinv2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1328,7 +1331,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.discheme_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'");
+                    // $run = $this->db->query("UPDATE backend.discheme_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'");
             }
         }//close foreach
 
@@ -1395,7 +1398,12 @@ class Upload_data extends REST_Controller{
             loc_group,hq_update,
             posted as posted,
             posted_by as posted_by,
-            posted_at as posted_at
+            posted_at as posted_at,
+            Amount,
+            gst_tax_sum,
+            unpostby,
+            unpostdatetime,
+            action_date
             FROM backend.dbnote_batch 
             WHERE dbnote_guid = '$row->dbnote_guid'");
 
@@ -1403,7 +1411,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/dbnotebatch';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/dbnotebatch';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/dbnotebatch';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1425,7 +1433,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.dbnote_batch SET hq_update = '3' WHERE dbnote_guid = '$row->dbnote_guid'");
+                    // $run = $this->db->query("UPDATE backend.dbnote_batch SET hq_update = '3' WHERE dbnote_guid = '$row->dbnote_guid'");
             }
         }//close foreach
 
@@ -1542,7 +1550,7 @@ class Upload_data extends REST_Controller{
         member_accno,               
         RoundingAdjust         
         FROM backend.supcus
-        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 3 MONTH)");
+        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)");
         
         //print_r($data->num_rows());die;
 
@@ -1550,7 +1558,7 @@ class Upload_data extends REST_Controller{
         $password = '1234'; //get from rest.php
 
         //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/supcus2';
-        $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/supcus2';
+        $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/supcus2';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1628,7 +1636,7 @@ class Upload_data extends REST_Controller{
                 $password = '1234'; //get from rest.php
 
                 //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/cp_set_branch2';
-                $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/cp_set_branch2';
+                $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/cp_set_branch2';
                 $ch = curl_init($url);
 
                 curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1699,7 +1707,7 @@ class Upload_data extends REST_Controller{
             $password = '1234'; //get from rest.php
 
             //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/po_completed2';
-            $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/po_completed2';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/po_completed2';
             $ch = curl_init($url);
 
             curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1720,7 +1728,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    $run = $this->db->query("UPDATE backend.pomain set hq_update = '3' WHERE RefNo = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.pomain set hq_update = '3' WHERE RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -1756,7 +1764,7 @@ class Upload_data extends REST_Controller{
         // }
 
         // $url = 'http://localhost/rest_api/index.php/panda_b2b/receive_checking_uploaded_po';
-        $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/receive_checking_uploaded_po';
+        $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/receive_checking_uploaded_po';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -1787,7 +1795,7 @@ class Upload_data extends REST_Controller{
                 else
                 {
                     // echo 2;
-                    $this->db->query("UPDATE backend.pomain SET hq_update = 3 WHERE refno = '$po_refno'");
+                    // $this->db->query("UPDATE backend.pomain SET hq_update = 3 WHERE refno = '$po_refno'");
                 }
                 // echo $row2.'<br>';
             }

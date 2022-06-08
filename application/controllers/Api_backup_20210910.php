@@ -12,6 +12,8 @@ class Api extends REST_Controller{
         $this->load->helper('url');
         $this->load->database();
         date_default_timezone_set("Asia/Kuala_Lumpur");
+        $this->b2b_ip = 'http://52.163.112.202';
+        // $this->b2b_ip = 'http://127.0.0.1';
     }
 
     public function check_error_get() 
@@ -275,8 +277,10 @@ class Api extends REST_Controller{
             WHERE podate >= DATE_FORMAT((SELECT date_start FROM rest_api.`run_once_config` LIMIT 1),'%Y-%m-%d')
             AND billstatus = '1' 
             AND completed IN('1','2')
-            AND hq_update <= '3' 
-            AND a.send = 0
+            -- AND hq_update = '3'
+            -- AND a.uploaded = 2 
+        AND a.uploaded NOT IN(4)
+            AND a.send != '2'
             ORDER BY podate DESC LIMIT 300");
 
 //echo $refno->num_rows();die;
@@ -288,7 +292,7 @@ class Api extends REST_Controller{
             foreach($refno->result() as $row)
             {
                 //echo $row->RefNo;die;
-                $gr_child = $this->db->query("SELECT a.*,b.total,b.grdate FROM (SELECT *,ROUND(SUM(totalprice)-SUM(discvalue),2) AS t_price FROM backend.grchild WHERE PORefNo = '$row->RefNo' GROUP BY PORefNo,RefNo) a INNER JOIN backend.grmain b ON a.RefNo = b.RefNo WHERE a.t_price = b.total");
+                $gr_child = $this->db->query("SELECT a.*,b.total,b.grdate FROM (SELECT *,ROUND(SUM(totalprice)-SUM(discvalue),2) AS t_price FROM backend.grchild WHERE PORefNo = '$row->RefNo' GROUP BY PORefNo,RefNo) a INNER JOIN backend.grmain b ON a.RefNo = b.RefNo");
         //echo $this->db->last_query();
         //echo $row->RefNo.'-'.count($gr_child->num_rows());die;
         
@@ -311,7 +315,7 @@ class Api extends REST_Controller{
                         $password = '1234'; //get from rest.php
 
                         // $url = 'http://192.168.10.29/rest_api/index.php/Panda_b2b/receive_gr_no';
-                        $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/receive_gr_no';
+                        $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/receive_gr_no';
                         $ch = curl_init($url);
 
                         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -331,12 +335,12 @@ class Api extends REST_Controller{
 
                         if($output->status == 'success')
                         {
-                            $this->db->query("UPDATE backend.pomain SET send = 2,send_at = NOW() WHERE RefNo = '$row2->PORefNo'");
+                            $this->db->query("UPDATE backend.pomain SET uploaded = 4 WHERE RefNo = '$row2->PORefNo'");
                         }
                         else
                         {
-                            $this->db->query("UPDATE backend.pomain SET send = 999,send_at = NOW() WHERE RefNo = '$row2->PORefNo'");
-                            $this->db->query("INSERT INTO lite_b2b.rest_data_err_log (`guid`,`customer_guid`,`po_refno`,`gr_refno`,`inv_refno`,`created_at`,`type`) VALUES('$guid','$customer_guid','$po_refno','$grn_refno','$inv_refno',NOW(),'po_gr_inv_upload') ");
+                            $this->db->query("UPDATE backend.pomain SET uploaded = 5 WHERE RefNo = '$row2->PORefNo'");
+                            // $this->db->query("INSERT INTO lite_b2b.rest_data_err_log (`guid`,`customer_guid`,`po_refno`,`gr_refno`,`inv_refno`,`created_at`,`type`) VALUES('$guid','$customer_guid','$po_refno','$grn_refno','$inv_refno',NOW(),'po_gr_inv_upload') ");
                         }
 
                         // die;
@@ -346,6 +350,7 @@ class Api extends REST_Controller{
         {
             $child_row++;
             $gr_child_no .= $row->RefNo.',';
+            $this->db->query("UPDATE backend.pomain SET uploaded = 5 WHERE RefNo = '$row->RefNo'");
         }
 
             }//close foreach
@@ -492,7 +497,7 @@ class Api extends REST_Controller{
         $password = '1234'; //get from rest.php
 
         // $url = 'http://127.0.0.1/b2b_upload_data/index.php/severside/supcus';
-        $url = 'http://52.163.112.202/rest_api/index.php/panda_b2b/supcus';
+        $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/supcus';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);

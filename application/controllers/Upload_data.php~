@@ -232,7 +232,7 @@ class Upload_data extends REST_Controller{
             }
             else
             {
-                    //$run = $this->db->query("UPDATE backend.pomain SET hq_update = '3' WHERE RefNo = '$row->RefNo'");
+                    $run = $this->db->query("UPDATE backend.pomain SET hq_update = '3' WHERE RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -638,9 +638,7 @@ class Upload_data extends REST_Controller{
         DATE_FORMAT(unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
         ibt_gst,
         DATE_FORMAT(acc_posting_date,'%Y-%m-%d') AS acc_posting_date,
-        RoundAdjNeed, 
-        stock_collected AS stock_collected,
-        date_collected AS date_collected 
+        RoundAdjNeed 
         FROM backend.dbnotemain
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND billstatus = '1'
@@ -707,9 +705,7 @@ class Upload_data extends REST_Controller{
             DATE_FORMAT(unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
             ibt_gst,
             DATE_FORMAT(acc_posting_date,'%Y-%m-%d') AS acc_posting_date,
-            RoundAdjNeed,
-            stock_collected AS stock_collected,
-            date_collected AS date_collected  
+            RoundAdjNeed 
             FROM backend.dbnotemain
             WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
 
@@ -1767,7 +1763,7 @@ class Upload_data extends REST_Controller{
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($refno->result()));
         $result = curl_exec($ch);
-        echo $result;die;
+        //echo $result;die;
         $output =  json_decode($result);
         $status = $output->status;
         // echo $status;die;

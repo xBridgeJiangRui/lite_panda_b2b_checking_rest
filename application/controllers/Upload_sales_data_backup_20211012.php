@@ -148,6 +148,7 @@ class Upload_sales_data extends REST_Controller{
                     $ii++;
                     continue;
                 }                  
+		$status = "false";
                 // echo 1;die;
                 $data = array(
                     'customer_guid' => $customer_guid,
@@ -276,89 +277,6 @@ class Upload_sales_data extends REST_Controller{
         echo json_encode($response);die;
         // print_r($data->num_rows());die;
     }  
-
-    public function upload_sku_cs_date_get()
-    {
-        ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 0);
-        $error = 0;
-        $database = 'report_summary';
-        $interval = '-1';
-        $table = 'sku_cs_date';
-        $start_date = $this->db->query("SELECT DATE_FORMAT(DATE_ADD(NOW(), INTERVAL $interval MONTH),'%Y-%m-01') as now")->row('now');
-        $end_date = $this->db->query("SELECT DATE_FORMAT(LAST_DAY(DATE_ADD(NOW(), INTERVAL -0 MONTH)),'%Y-%m-%d') as now")->row('now');
-
-        $start_date = '2021-08-01';
-        $end_date = '2021-08-31';
-
-        $customer_guid = $this->db->query("SELECT customer_guid FROM rest_api.run_once_config WHERE active = 1")->row('customer_guid');
-
-        $result = $this->db->query("SELECT '$customer_guid' as customer_guid,a.* FROM $database.$table a WHERE a.b2b_status = 0 AND a.bizdate BETWEEN '$start_date' AND '$end_date' LIMIT 500");
-
-        foreach($result->result() as $row)
-        {
-            $bizdate = $row->bizdate;
-            $location = $row->Location;
-            $itemcode = $row->itemcode;
-            $itemtype = $row->itemtype;
-            // echo $row->bizdate.' '.$row->Location.' '.$row->itemcode.' '.$row->itemtype.'<br>';
-            $data = array($row);
-            // echo json_encode($data);die;
-            $module = 'rest_b2b/index.php/Get_sales/get_sku_cs_date';
-            $to_shoot_url = $this->b2b_ip."/".$module;
-            // echo $to_shoot_url;die;
-
-            $cuser_name = 'ADMIN';
-            $cuser_pass = '1234';
-
-            $ch = curl_init($to_shoot_url);
-           // curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-API-KEY: " . "CODEX1234" ));
-            curl_setopt($ch, CURLOPT_TIMEOUT, 0);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
-            curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-            $result = curl_exec($ch);
-            $output = json_decode($result);
-
-            // echo $result;die;
-            // print_r($output->status);
-            if(isset($output->status))
-            {
-                if($output->status == 'true')
-                {
-                    $this->db->query("UPDATE $database.$table SET b2b_status = 1 WHERE bizdate = '$bizdate' AND Location = '$location' AND itemcode = '$itemcode' AND itemtype = '$itemtype'");
-                }
-                else
-                {
-                    $error++;
-                }
-                $status = $output->status;
-            }
-            else
-            {
-                $error++;
-            }
-        }
-
-        if($error > 0)
-        {
-            $message = 'Send unsuccessful';
-            $return_status = 'false';
-        }
-        else
-        {
-            $message = 'Send successfully';
-            $return_status = 'true';
-        }
-
-        $response = array(
-            'status' => $return_status,
-            'message' => $message,
-        );
-        echo json_encode($response);die;
-    }
+         
 }
 

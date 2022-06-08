@@ -93,8 +93,29 @@ class Get_outlet_data_to_hq extends REST_controller
                 'Status' => '0',
                 'KeyField' => '',
             );
-            // before insert delete previous data
+
+	        // before insert delete previous data
             $this->db->query("DELETE FROM b2b_hub.dbnote_batch_checking");
+
+            // insert record for update to all outlet
+            $result =  $this->db->insert('sqlserver.sqlscript', $data);
+            if ($result == '') {
+                $status = 'true';
+                $message = 'Success scap outlet data to HQ';
+            }
+        }else if ($type == 'GRN') {
+            $data = array(
+                'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
+                'SqlScript' => "INSERT INTO `sqlhq`.`sqlscript` ( `refno`, `SqlScript`, `CreatedDateTime`, `CreatedBy`, `Status` ) SELECT REPLACE(UPPER(UUID()),'-','') AS refno, CONCAT(\" INSERT INTO `b2b_hub`.`grmain_checking` ( `loc_group`, `refno`, `DONo`, `InvNo`, `DocDate`, `GRDate`, `Code`, `Name`, `EXPORT_ACCOUNT`, `BillStatus`,`ibt`,`in_kind`,`postdatetime`,`uploaded`,`uploaded_at` ) SELECT '\",loc_group,\"', '\",refno,\"', '\",DONo,\"', '\",InvNo,\"', '\",DocDate,\"', '\",GRDate,\"', '\",Code,\"', '\",Name,\"', '\",EXPORT_ACCOUNT,\"', '\",BillStatus,\"', '\",ibt,\"', '\",in_kind,\"', '\",postdatetime,\"', '\",uploaded,\"', '\",uploaded_at,\"'\") AS    SqlScript, NOW() AS    CreatedDateTime, 'b2b_system' AS    CreatedBy, 0 AS    STATUS FROM backend.grmain WHERE postdatetime BETWEEN TIMESTAMP(CURDATE() - INTERVAL 1 MONTH) AND TIMESTAMP(CURDATE())",
+                'CreatedDateTime' => date("Y-m-d H:i:s"),
+                'CreatedBy' => 'bot_b2b',
+                'Status' => '0',
+                'KeyField' => '',
+            );
+
+	        // before insert delete previous data
+            $this->db->query("DELETE FROM b2b_hub.grmain_checking");
+
             // insert record for update to all outlet
             $result =  $this->db->insert('sqlserver.sqlscript', $data);
             if ($result == '') {
@@ -127,7 +148,7 @@ class Get_outlet_data_to_hq extends REST_controller
             $username = 'admin'; //get from rest.php
             $password = '1234'; //get from rest.php
 
-            $url = $this->b2b_ip . '/rest_api/index.php/panda_b2b/dbnote_batch';
+            $url = $this->b2b_ip . '/rest_b2b/index.php/Outlet_to_hq/dbnote_batch';
             // echo $url;die;
             $ch = curl_init($url);
 
@@ -153,38 +174,46 @@ class Get_outlet_data_to_hq extends REST_controller
         );
     }
 
-    function dbnote_batch_post()
+    public function grmain_get()
     {
-        // $url_file = 'C:\xampp\htdocs\rest_api\application\data.json';
-        //    $json_data = file_get_contents($url_file, true);
-        $json_data = file_get_contents('php://input');
-        $daily_array = json_decode($json_data, true);
+        $data = $this->db->query("SELECT * FROM b2b_hub.grmain_checking AS a");
 
-        //echo var_dump($json_data);
-        foreach ($daily_array as $row => $value) {
+        foreach ($data->result() as $row) {
 
-            $data[] = array(
-                'customer_guid' => $value['customer_guid'],
-                'loc_group' => $value['loc_group'],
-                'batch_no' => $value['batch_no'],
-                'sup_code' => $value['sup_code'],
-                'sup_name' => $value['sup_name'],
-                'created_at' => $value['created_at'],
-                'canceled' => $value['canceled'],
-                'hq_update' => $value['hq_update'],
-                'posted' => $value['posted'],
-                'posted_at' => $value['posted_at'],
-                'status' => $value['status'],
+            $date = $this->db->query("SELECT NOW() as now")->row('now');
+            $data2 = $this->db->query("SELECT
+            (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
+            a.*
+            FROM b2b_hub.`grmain_checking` AS a
+            WHERE a.refno = '$row->refno'");
 
-            );
+            $username = 'admin'; //get from rest.php
+            $password = '1234'; //get from rest.php
 
-            $insertqr = $this->db->replace_batch('b2b_checking.dbnote_batch', $data);
-        }
-        $afrows = $this->db->affected_rows();
-        if ($afrows > 0) {
-            echo 'true';
-        } else {
-            echo 'false';
-        }
+            $url = $this->b2b_ip . '/rest_b2b/index.php/Outlet_to_hq/grmain';
+            // echo $url;die;
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+            curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data2->result()));
+
+            $result = curl_exec($ch);
+            // echo $result;die;
+            $output =  json_decode($result);
+            $status = $output->message;
+        } //close foreach
+
+        $this->response(
+            [
+                'status' => TRUE,
+                'message' => 'Success'
+            ]
+        );
     }
+
 }

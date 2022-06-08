@@ -45,17 +45,25 @@ class Update_b2b_flag extends REST_controller
                     WHERE a.`b2b_registration`='0' AND a.`Code` = '$value'");
 
                     if ($insert_sql_query == '1') {
-                        $data = array(
-                            'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
-                            'SqlScript' => "UPDATE backend.supcus SET b2b_registration = 1 WHERE supcus_guid='" . $vendor_code_b2b_status->row('supcus_guid') . "'",
-                            'CreatedDateTime' => date("Y-m-d H:i:s"),
-                            'CreatedBy' => 'bot_b2b',
-                            'Status' => '0',
-                            'KeyField' => '',
-                        );
+                        // $data = array(
+                        //     'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
+                        //     'SqlScript' => "UPDATE backend.supcus SET b2b_registration = 1 WHERE supcus_guid='" . $vendor_code_b2b_status->row('supcus_guid') . "'",
+                        //     'CreatedDateTime' => date("Y-m-d H:i:s"),
+                        //     'CreatedBy' => 'bot_b2b',
+                        //     'Status' => '1',
+                        //     'KeyField' => '',
+                        // );
 
                         // insert record for update to all outlet
-                        $this->db->insert('sqlserver.sqlscript', $data);
+                        // $this->db->insert('sqlserver.sqlscript', $data);
+                        $this->db->query("INSERT INTO sqlserver.sqlscript
+                        SELECT REPLACE(UPPER(UUID()),'-','') AS refno, 
+                        CONCAT('UPDATE backend.supcus SET b2b_registration = 1 WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
+                        NOW() AS CreatedDateTime,
+                        'bot_b2b' AS CreatedBy,
+                        0 AS STATUS,
+                        '' AS KeyField
+                         FROM backend.`supcus` WHERE supcus_guid = '" . $vendor_code_b2b_status->row('supcus_guid') . "'");
                     }
 
 
@@ -91,19 +99,26 @@ class Update_b2b_flag extends REST_controller
 
                     if ($insert_sql_query == '1') {
 
-                        $data = array(
-                            'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
-                            'SqlScript' => "UPDATE backend.supcus
-                             SET b2b_registration = 0
-                             WHERE supcus_guid='$vendor_code_b2b_status->row('supcus_guid')'",
-                            'CreatedDateTime' => date("Y-m-d H:i:s"),
-                            'CreatedBy' => 'bot_b2b',
-                            'Status' => '0',
-                            'KeyField' => '',
-                        );
+                        // $data = array(
+                        //     'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
+                        //     'SqlScript' => "UPDATE backend.supcus SET b2b_registration = 0 WHERE supcus_guid='" . $vendor_code_b2b_status->row('supcus_guid') . "'",
+                        //     'CreatedDateTime' => date("Y-m-d H:i:s"),
+                        //     'CreatedBy' => 'bot_b2b',
+                        //     'Status' => '0',
+                        //     'KeyField' => '',
+                        // );
 
-                        // insert record for update to all outlet
-                        $this->db->insert('sqlserver.sqlscript', $data);
+                        // // insert record for update to all outlet
+                        // $this->db->insert('sqlserver.sqlscript', $data);
+
+                        $this->db->query("INSERT INTO sqlserver.sqlscript
+                        SELECT REPLACE(UPPER(UUID()),'-','') AS refno, 
+                        CONCAT('UPDATE backend.supcus SET b2b_registration = 0 WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
+                        NOW() AS CreatedDateTime,
+                        'bot_b2b' AS CreatedBy,
+                        0 AS STATUS,
+                        '' AS KeyField
+                         FROM backend.`supcus` WHERE supcus_guid = '" . $vendor_code_b2b_status->row('supcus_guid') . "'");
                     }
 
                     $affected_row = $this->db->affected_rows();

@@ -803,6 +803,7 @@ class Upload_data extends REST_Controller{
             // echo $result;die;
             $output =  json_decode($result);
             $status = $output->message;
+
             if($status == "true")
             {
                     $run = $this->db->query("UPDATE backend.dbnotemain set uploaded = '2' , uploaded_at = '$date' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'"); 
@@ -1471,7 +1472,11 @@ class Upload_data extends REST_Controller{
             gst_tax_sum,
             unpostby,
             unpostdatetime,
-            action_date
+            action_date,
+	    uploaded_image,
+	    status,
+	    remark,
+	    cancel_reason
             FROM backend.dbnote_batch 
             WHERE dbnote_guid = '$row->dbnote_guid'");
 
@@ -1491,7 +1496,7 @@ class Upload_data extends REST_Controller{
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data2->result()));
 
             $result = curl_exec($ch);
-            // echo $result;die;
+            //echo $result;die;
             $output =  json_decode($result);
             $status = $output->message;
             // echo $status;die;
@@ -1618,8 +1623,7 @@ class Upload_data extends REST_Controller{
         member_accno,               
         RoundingAdjust         
         FROM backend.supcus
-        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)
-        ");
+        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)");
         
         //print_r($data->num_rows());die;
 
@@ -1894,7 +1898,6 @@ class Upload_data extends REST_Controller{
             // $this->Main_model->query_call('Api','login_validation_get', $data)
             );
         }
-    }
-  
+    } 
 }
 

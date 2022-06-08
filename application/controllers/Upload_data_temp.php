@@ -18,7 +18,10 @@ class Upload_data_temp extends REST_Controller{
 
     public function purchase_order_get()
     {
-        $data = $this->db->query("SELECT refno as RefNo,'PO' as TYPE FROM b2b_hub.reupload WHERE type = 'pomain' AND uploaded = '2'");
+	ini_set('max_execution_time', 0); 
+        ini_set('memory_limit','2048M');
+
+        $data = $this->db->query("SELECT refno as RefNo FROM b2b_hub.reupload WHERE type = 'pomain' AND uploaded = 1");
 
         //print_r($data->num_rows());die;
 
@@ -137,7 +140,7 @@ class Upload_data_temp extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'pomain'"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '2' WHERE RefNo = '$row->RefNo' AND type='pomain'"); 
             }
             else
             {
@@ -156,7 +159,10 @@ class Upload_data_temp extends REST_Controller{
     
     public function goods_received_note_get()
     {
-        $data = $this->db->query("SELECT refno as RefNo,'GRN' as TYPE FROM b2b_hub.reupload WHERE type = 'grmain' AND uploaded = '2'");
+	ini_set('max_execution_time', 0); 
+        ini_set('memory_limit','2048M');
+
+        $data = $this->db->query("SELECT refno as RefNo FROM b2b_hub.reupload WHERE type = 'grmain' AND uploaded = 1");
 
         // print_r($data->num_rows());die;
 
@@ -272,7 +278,7 @@ class Upload_data_temp extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'grmain'"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '2' WHERE RefNo = '$row->RefNo' AND type='grmain'"); 
             }
             else
             {
@@ -291,8 +297,11 @@ class Upload_data_temp extends REST_Controller{
     
     public function grda_get()
     {
-        $data = $this->db->query("SELECT a.refno AS RefNo, b.`transtype` AS transtype FROM b2b_hub.reupload a INNER JOIN backend.`grmain_dncn` b ON a.refno = b.refno 
-WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
+        $data = $this->db->query("SELECT a.refno AS RefNo, b.transtype AS transtype FROM b2b_hub.reupload a
+	INNER JOIN backend.grmain_dncn b
+	ON a.refno = b.refno
+	WHERE a.uploaded = '2'
+	AND a.type = 'grmain_dncn'");
 
         // print_r($data->num_rows());die;
 
@@ -352,7 +361,7 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'grmain_dncn'"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '3' WHERE RefNo = '$row->RefNo' AND type='grmain_dncn'"); 
             }
             else
             {
@@ -371,7 +380,10 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
 
     public function dbnotemain_get()
     {
-        $data = $this->db->query("SELECT refno as RefNo,'DEBIT' as TYPE FROM b2b_hub.reupload WHERE type = 'DEBIT' AND uploaded = '2'");
+	ini_set('max_execution_time', 0); 
+        ini_set('memory_limit','2048M');
+
+        $data = $this->db->query("SELECT refno AS RefNo, type AS TYPE FROM b2b_hub.reupload WHERE type = 'DEBIT' AND uploaded = 2");
 
         //print_r($data->num_rows());die;
 
@@ -459,10 +471,11 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'DEBIT'"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '3' WHERE RefNo = '$row->RefNo' AND type='DEBIT'"); 
             }
             else
             {
+		    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '99' WHERE RefNo = '$row->RefNo' AND type='DEBIT'");
                     // $run = $this->db->query("UPDATE backend.dbnotemain set hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
             }
         }//close foreach
@@ -478,13 +491,16 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
 
     public function cnnotemain_get()
     {
-        $data = $this->db->query("SELECT refno as RefNo,'CN' as TYPE FROM b2b_hub.reupload WHERE type = 'CN' AND uploaded = '2'");
+	ini_set('max_execution_time', 0); 
+        ini_set('memory_limit','2048M');
+
+        $data = $this->db->query("SELECT refno AS RefNo, type AS TYPE FROM b2b_hub.reupload WHERE type = 'CN' AND uploaded = 2");
 
         //print_r($data->num_rows());die;
 
         foreach($data->result() as $row)
         {
-            // echo $row->TYPE;die; 
+            // echo $row->RefNo;die; 
             $data2 = $this->db->query("SELECT 
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             IF(closed = '1', 'Closed',  '') AS STATUS,
@@ -561,14 +577,13 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             // echo $result;die;
             $output =  json_decode($result);
             $status = $output->message;
-
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'CN' ;"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '3' WHERE RefNo = '$row->RefNo' AND type='CN'"); 
             }
             else
             {
-                    // $run = $this->db->query("UPDATE backend.cnnotemain SET hq_update = '3' WHERE type = '$row->TYPE' AND refno = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.cnnotemain SET hq_update = '3' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
             }
         }//close foreach
 
@@ -585,13 +600,13 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
     {
         $data = $this->db->query("SELECT 
 	  a.refno AS RefNo,
-	  b.`cndn_guid` AS cndn_guid
+	 b.`cndn_guid` AS cndn_guid 
 	FROM
 	  b2b_hub.reupload a 
 	  INNER JOIN backend.cndn_amt b 
 	    ON a.refno = b.`refno`
 	WHERE a.type = 'cndn_amt' 
-	  AND a.uploaded = 2");
+	  AND a.uploaded = 2 ");
 
         //print_r($data->num_rows());die;
 
@@ -669,7 +684,7 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = 3 WHERE refno = '$row->RefNo' AND type = 'cndn_amt'"); 
+                    $run = $this->db->query("UPDATE b2b_hub.reupload SET uploaded = '3' WHERE RefNo = '$row->RefNo' AND type='cndn_amt'"); 
             }
             else
             {
@@ -732,16 +747,15 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
         DATE_FORMAT(uploaded_at, '%Y-%m-%d %H:%i:%s') AS uploaded_at,
         issued_by_hq 
         FROM backend.promo_taxinv
-        WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
-        AND posted = '1'  
-        AND uploaded = '1'  
+        WHERE inv_refno IN ('WWSPCI21060019', 'WWSPCI21060017', 'WWSPCI21060011', 'WWSPCI21060007', 'WWSPCI21060002', 'WWSPCI21060010', 'WWSPCI21060006', 'PPRPCI21030115', 'WWSPCI21060020', 'WWSPCI21060013', 'WWSPCI21060004')
         LIMIT 100");
 
-        //print_r($data->num_rows());die;
+        print_r($data->num_rows());die;
 
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
+	    $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             ''  AS STATUS,
@@ -809,7 +823,8 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.promo_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'"); 
+		$run = $this->db->query("UPDATE backend.promo_taxinv SET uploaded = '2' , uploaded_at = '$date' WHERE taxinv_guid = '$row->taxinv_guid'"); 
+                    //$run = $this->db->query("UPDATE backend.promo_taxinv SET hq_update = '3', uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'"); 
             }
             else
             {
@@ -1444,1326 +1459,8 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             );
         }
     }
-    
-    public function simain_get()
 
-    {
-
-        $data = $this->db->query("SELECT
-
-        (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
-
-        `RefNo`,
-
-        `DocNo`,
-
-        DATE_FORMAT(InvoiceDate, '%Y-%m-%d') AS InvoiceDate,
-
-        DATE_FORMAT(DeliverDate, '%Y-%m-%d') AS DeliverDate,
-
-        DATE_FORMAT(IssueStamp,  '%Y-%m-%d %H:%i:%s') AS IssueStamp,
-
-        `IssuedBy`,
-
-        DATE_FORMAT(LastStamp,  '%Y-%m-%d %H:%i:%s') AS LastStamp,
-
-        `Code`,
-
-        `Name`,
-
-        `Add1`,
-
-        `Add2`,
-
-        `Add3`,
-
-        `Attn`,
-
-        `term`,
-
-        `Tel`,
-
-        `Fax`,
-
-        `DAdd1`,
-
-        `DAdd2`,
-
-        `DAdd3`,
-
-        `DAttn`,
-
-        `DTel`,
-
-        `DFax`,
-
-        `Remark`,
-
-        `SubTotal1`,
-
-        `Discount1`,
-
-        `Discount1Type`,
-
-        `SubTotal2`,
-
-        `Discount2`,
-
-        `Discount2Type`,
-
-        `Total`,
-
-        `BillStatus`,
-
-        `Disc1Percent`,
-
-        `Disc2Percent`,
-
-        `SubDeptCode`,
-
-        `postby`,
-
-        DATE_FORMAT(postdatetime, '%Y-%m-%d %H:%i:%s') AS postdatetime,
-
-        `deflocation`,
-
-        `AmtAsDescription`,
-
-        `SALESMAN`,
-
-        `EXPORT_ACCOUNT`,
-
-        `hq_update`,
-
-        `CONVERTED_FROM_MODULE`,
-
-        `CONVERTED_FROM_AT`,
-
-        `CONVERTED_FROM_BY`,
-
-        `CONVERTED_FROM_GUID`,
-
-        DATE_FORMAT(EXPORT_AT, '%Y-%m-%d %H:%i:%s') AS EXPORT_AT,
-
-        `EXPORT_BY`,
-
-        `DueDate`,
-
-        `Deliverd_by`,
-
-        `Vehicle_no`,
-
-        `Doc_No`,
-
-        `loc_group`,
-
-        `ibt`,
-
-        `gst_tax_sum`,
-
-        `tax_code_purchase`,
-
-        `tax_code_sales`,
-
-        `total_include_tax`,
-
-        `refno2`,
-
-        `surchg_tax_sum`,
-
-        `doc_name_reg`,
-
-        `gst_tax_rate`,
-
-        `multi_tax_code`,
-
-        `tax_inclusive`,
-
-        DATE_FORMAT(unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
-
-        `unpostby`,
-
-        `gst_adj`,
-
-        `ibt_gst`,
-
-        `revision`,
-
-        `member_accno`,
-
-        `UpdateMembersPoint`,
-
-        `PointsSum`,
-
-        `RoundAdjNeed`,
-
-        `rounding_adj`,
-
-        `ibt_complete`,
-
-        `ibt_rec_amt`,
-
-        `cardtype`,
-
-        `TotalTax`,
-
-        `doc_status`,
-
-        `doc_type`,
-
-        `billto_name`,
-
-        `billto_reg_no`,
-
-        `billto_gst`,
-
-        `credit_available`,
-
-        `tran_volume`,
-
-        `tran_weight`,
-
-        `DOutlet_code`,
-
-        `Add4`,
-
-        `DAdd4`,
-
-        `si_paid`,
-
-        `si_point_multiply`
-
-        
-
-        FROM `backend`.`simain`
-
-        WHERE billstatus = 1
-
-        
-
-        LIMIT 1");
-
- 
-
-        print_r($data->num_rows());die;
-
-
-
-        foreach($data->result() as $row)
-
-        {
-
-             //echo $row->RefNo;die; 
-	    $date = $this->db->query("SELECT NOW() as now")->row('now');
-
-            $data2= $this->db->query("SELECT
-
-                (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
-
-                `RefNo`,
-
-                `DocNo`,
-
-                DATE_FORMAT(InvoiceDate, '%Y-%m-%d') AS InvoiceDate,
-
-                DATE_FORMAT(DeliverDate, '%Y-%m-%d') AS DeliverDate,
-
-                DATE_FORMAT(IssueStamp,  '%Y-%m-%d %H:%i:%s') AS IssueStamp,
-
-                `IssuedBy`,
-
-                DATE_FORMAT(LastStamp,  '%Y-%m-%d %H:%i:%s') AS LastStamp,
-
-                `Code`,
-
-                `Name`,
-
-                `Add1`,
-
-                `Add2`,
-
-                `Add3`,
-
-                `Attn`,
-
-                `term`,
-
-                `Tel`,
-
-                `Fax`,
-
-                `DAdd1`,
-
-                `DAdd2`,
-
-                `DAdd3`,
-
-                `DAttn`,
-
-                `DTel`,
-
-                `DFax`,
-
-                `Remark`,
-
-                `SubTotal1`,
-
-                `Discount1`,
-
-                `Discount1Type`,
-
-                `SubTotal2`,
-
-                `Discount2`,
-
-                `Discount2Type`,
-
-                `Total`,
-
-                `BillStatus`,
-
-                `Disc1Percent`,
-
-                `Disc2Percent`,
-
-                `SubDeptCode`,
-
-                `postby`,
-
-                DATE_FORMAT(postdatetime, '%Y-%m-%d %H:%i:%s') AS postdatetime,
-
-                `deflocation`,
-
-                `AmtAsDescription`,
-
-                `SALESMAN`,
-
-                `EXPORT_ACCOUNT`,
-
-                `hq_update`,
-
-                `CONVERTED_FROM_MODULE`,
-
-                `CONVERTED_FROM_AT`,
-
-                `CONVERTED_FROM_BY`,
-
-                `CONVERTED_FROM_GUID`,
-
-                DATE_FORMAT(EXPORT_AT, '%Y-%m-%d %H:%i:%s') AS EXPORT_AT,
-
-                `EXPORT_BY`,
-
-                `DueDate`,
-
-                `Deliverd_by`,
-
-                `Vehicle_no`,
-
-                `Doc_No`,
-
-                `loc_group`,
-
-                `ibt`,
-
-                `gst_tax_sum`,
-
-                `tax_code_purchase`,
-
-                `tax_code_sales`,
-
-                `total_include_tax`,
-
-                `refno2`,
-
-                `surchg_tax_sum`,
-
-                `doc_name_reg`,
-
-                `gst_tax_rate`,
-
-                `multi_tax_code`,
-
-                `tax_inclusive`,
-
-                DATE_FORMAT(unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
-
-                `unpostby`,
-
-                `gst_adj`,
-
-                `ibt_gst`,
-
-                `revision`,
-
-                `member_accno`,
-
-                `UpdateMembersPoint`,
-
-                `PointsSum`,
-
-                `RoundAdjNeed`,
-
-                `rounding_adj`,
-
-                `ibt_complete`,
-
-                `ibt_rec_amt`,
-
-                `cardtype`,
-
-                `TotalTax`,
-
-                `doc_status`,
-
-                `doc_type`,
-
-                `billto_name`,
-
-                `billto_reg_no`,
-
-                `billto_gst`,
-
-                `credit_available`,
-
-                `tran_volume`,
-
-                `tran_weight`,
-
-                `DOutlet_code`,
-
-                `Add4`,
-
-                `DAdd4`,
-
-                `si_paid`,
-
-                `si_point_multiply`
-
-               
-
-                FROM `backend`.`simain`
-
-                WHERE RefNo = '$row->RefNo'
-
-                ");
-
-            $query1 = $this->db->query("SELECT a.*,b.* FROM
-
-                (SELECT CONCAT(a.CODE,IF(doutlet_code='',CONCAT(' - ',a.NAME),CONCAT('    Customer Outlet  ',doutlet_code))) AS customer,salesman,
-
-                @euser AS USER,
-
-                CONCAT(a.deliverd_by,IF(a.deliverd_by='','','  '),a.vehicle_no) AS delivered_by,
-
-                a.docno AS refno2,
-
-                a.tel,a.fax,a.term,deflocation AS location,
-
-                tran_weight,
-
-                tran_volume,
-
-                IF(tran_weight=0 AND tran_volume=0,'',
-
-                IF(tran_weight<>0 AND tran_volume=0,CONCAT('Total kg ',ROUND(tran_weight,1)),
-
-                IF(tran_weight=0 AND tran_volume<>0,CONCAT('Total m3 ',ROUND(tran_volume,1)),
-
-                CONCAT('KG: ',ROUND(tran_weight,1),'   M3: ',ROUND(tran_volume,1))))) AS total_weight,
-
-                Amtasdescription,
-
-                IF(d.refno IS NULL OR d.refno='',a.refno,d.refno) AS refno,invoicedate,a.deliverdate,
-
-                a.subtotal1,discount1 * -1 AS discount1,a.subtotal2,discount2,a.total,issuestamp,issuedby,postdatetime,postby,a.laststamp,a.remark,
-
-                IF(discount1type=1,'%','$') AS discount1type,IF(discount2type=1,'%','$') AS discount2type,
-
-                IF(a.dadd1='' OR a.dadd1 IS NULL,a.add1,a.dadd1) AS add1,
-
-                IF(a.dadd1='' OR a.dadd1 IS NULL,a.add2,a.dadd2) AS add2,
-
-                IF(a.dadd1='' OR a.dadd1 IS NULL,a.add3,a.dadd3) AS add3,
-
-                IF(a.dadd1='' OR a.dadd1 IS NULL,a.add4,a.dadd4) AS add4,
-
-                c.city,c.state,c.postcode,c.country,
-
-                CONCAT('Tel : ',IF(a.dadd1 IS NULL OR a.dadd1='',a.tel,a.dtel),IF(a.dadd1='' OR a.dadd1 IS NULL,IF(a.fax='' OR a.fax IS NULL,'',
-
-                CONCAT('  Fax : ',a.fax)),CONCAT('  Fax : ',a.dfax))) AS contact,
-
-
-
-                IF(converted_from_module='dc_picklist','IBT SALES INVOICE CUM DELIVERY ORDER','SALES INVOICE CUM DELIVERY ORDER') AS title,
-
-                CONCAT('Doc Status : ',IF(billstatus=0,'Unpost','Posted')) AS doc_status,
-
-                CONCAT(a.term, ' - ',b.description) AS termdesc,
-
-                a.deliverd_by,a.vehicle_no,a.doc_no,
-
-                e.refno AS ibt_refno,
-
-                IF(a.billstatus=1,'','XXX') AS chk,IF(a.billstatus=1,'','Document Not Posted') AS chk_1,
-
-                a.refno AS refno_si,
-
-                IF(a.docno='' OR a.docno IS NULL,d.refno,a.docno) AS refno_pick,
-
-                IF(a.ibt=1,'IBT Request','Other Refno') AS docno_title,
-
-                a.doc_name_reg,
-
-
-
-                IF(a.ibt=1,'Inter Branch Stock Transfer Outwards',
-
-                IF(consign=1,'Consignment Note',
-
-                IF((SELECT gst_end_date FROM backend.companyprofile)>=invoicedate,'Tax Invoice','Invoice'))) AS title_3,
-
-
-
-                IF(billstatus=0,'Draft Copy','') AS draft,
-
-
-
-                IF(a.ibt=1,'Refno','Refno') AS inv_title,
-
-
-
-                IF(a.ibt=1,IF(a.ibt_gst=0,'Inter Branch Stock Transfer Outwards to','Inter Branch Stock Transfer Outwards to'),
-
-                IF(a.ibt=2,IF(a.ibt_gst=0,'Sales to Inter Company Customer','Sales to Inter Company Customer'),
-
-                IF(g.gst_tax_rate=0,
-
-                'Sales to Registered GST Customer entitled to 0% Tax','Sales to Customer'))) AS title_gst,
-
-
-
-                IF(a.ibt=1,'Inter Branch Stock Transfer Outwards Issued By',
-
-                IF(a.ibt=2,'Inter Company Sales Invoice Issued By',
-
-                'Sales Invoice Issued By')) AS title_issue,
-
-
-
-                IF(a.ibt=1,'Inter Branch Stock Transfer Outwards Issued By',
-
-                IF(a.ibt=2,'Inter Company Delivery Order Issued By',
-
-                'Deliver Order Issued By')) AS title_issued_do,
-
-
-
-                'Delivery Order' AS title_DO,
-
-
-
-
-
-
-
-                CONCAT(a.deflocation,' - ',f.description) AS loc_desc,
-
-                CONCAT(loc_group,IF(loc_group=a.deflocation,'',CONCAT(' (',a.deflocation,')'))) AS outlet_loc,
-
-                IF(loc_group=a.deflocation,'Outlet','Outlet (Location)') AS outlet_title,
-
-
-
-
-
-                CONCAT('Co Reg No : ',reg_no,
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),
-
-                IF(gst_no='','',CONCAT('    GST Reg No : ',gst_no,
-
-                IF((SELECT COUNT(DISTINCT(gst_tax_code)) AS gst_count 
-
-                FROM backend.sichild a
-
-                INNER JOIN backend.simain b
-
-                ON a.refno=b.refno
-
-                WHERE a.refno='$row->RefNo'
-
-                GROUP BY a.refno)=1 AND a.ibt=0,CONCAT('    Tax Code : ',a.tax_code_purchase),''))),'')) reg_sup,
-
-
-
-                IF(a.ibt=1,'IBT Branch Copy',
-
-                IF(a.ibt=2,'Inter Company Copy',
-
-                'Customer Copy')) AS title_supcopy,
-
-
-
-
-
-                IF(a.billstatus=0,'Posted on',CONCAT('Posted on ',DATE_FORMAT(a.postdatetime,'%d/%m/%y %H:%I:%S'))) AS doc_posted,
-
-                CONCAT('Issued on ',DATE_FORMAT(a.issuestamp,'%d/%m/%y %H:%I:%S')) AS doc_created,
-
-
-
-                IF(d.docdate IS NULL,'',CONCAT('Picking List Date  ',DATE_FORMAT(d.docdate,'%d/%m/%y'))) AS pick_date,
-
-                a.refno AS si_refno,
-
-                IF((SELECT set_enable FROM backend.`set_module_features` WHERE module_guid = '0E4FCA0540F211EBB1D2202107091348')=1,
-
-                '***This document is computer generated. No signature is required.***','') AS no_signature
-
-
-
-
-
-                FROM backend.simain a
-
-
-
-                INNER JOIN backend.supcus c
-
-                ON a.CODE=c.CODE
-
-
-
-                INNER JOIN backend.location f
-
-                ON a.deflocation=f.CODE
-
-
-
-                LEFT JOIN backend.set_gst_table g
-
-                ON a.tax_code_sales=g.gst_tax_code
-
-
-
-                LEFT JOIN backend.pay_term b
-
-                ON a.term=b.CODE
-
-
-
-                LEFT JOIN backend.dc_pick d
-
-                ON a.converted_from_guid=d.trans_guid
-
-
-
-                LEFT JOIN backend.dc_req e
-
-                ON d.trans_guid=e.converted_guid
-
-                WHERE a.refno='$row->RefNo' AND TYPE='c') a
-
-
-
-                INNER JOIN
-
-
-
-                (SELECT /*IF(remark IS NULL OR remark='',IF(branch_name ='' OR branch_name IS NULL,companyname,branch_name),remark)*/
-
-                IF(branch_name='' OR branch_name IS NULL,companyname,branch_name) AS companyname,
-
-                (SELECT invremark1 FROM backend.xsetup) AS invremark1,
-
-                (SELECT invremark2 FROM backend.xsetup) AS invremark2,
-
-                (SELECT invremark3 FROM backend.xsetup) AS invremark3,
-
-                IF(branch_add='' OR branch_add IS NULL,address1,'') AS address1,
-
-                IF(branch_add='' OR branch_add IS NULL,address2,'') AS address2,
-
-                IF(branch_add='' OR branch_add IS NULL,address3,'') AS address3,
-
-                IF(branch_add='' OR branch_add IS NULL,CONCAT('Tel: ',c.tel,'    Fax: ',c.fax),CONCAT('Tel: ',branch_tel,'    Fax: ',branch_fax)) AS contactnumber,
-
-                IF(branch_add='' OR branch_add IS NULL,'',branch_add) AS branch_add,
-
-
-
-                CONCAT('Co Reg No : ',IF(reg_no='' OR reg_no IS NULL,comp_reg_no,reg_no),
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),
-
-                IF(branch_gst='' OR branch_gst IS NULL,
-
-                IF(gst_no='','',CONCAT('    GST Reg No : ',gst_no)),
-
-                CONCAT('    GST Reg No : ',branch_gst)),
-
-                IF(invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile),
-
-                IF(branch_sst='' OR branch_sst IS NULL,
-
-                IF(sst_no='','',CONCAT('    SST Reg No : ',sst_no)),
-
-                CONCAT('    SST Reg No : ',branch_sst)),''))) reg_no,
-
-
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),'Total Amount Exclude Tax',
-
-                IF(invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile),'Total Amount Exclude Tax',
-
-                'Total Amount')) AS title_total,
-
-
-
-                a.refno, 
-
-                Branch_name
-
-                FROM backend.simain a
-
-
-
-                INNER JOIN backend.companyprofile c
-
-
-
-                LEFT JOIN 
-
-                (SELECT a.refno,reg_no,gst_no AS branch_gst,name_reg,branch_add,branch_name,branch_tel,branch_fax,
-
-                SSTRegNo AS branch_sst  
-
-                FROM backend.simain a
-
-                INNER JOIN backend.cp_set_branch b
-
-                ON a.loc_group=b.branch_code
-
-                INNER JOIN backend.supcus c
-
-                ON b.set_supplier_code=c.CODE
-
-                WHERE refno='$row->RefNo') b
-
-
-
-                ON a.refno=b.refno
-
-
-
-                WHERE a.refno='$row->RefNo') b
-
-
-
-                ON a.si_refno=b.refno ");
-
-            $query2 = $this->db->query("SELECT a.itemcode,barcode,articleno,description,c.item_remark,packsize,bulkqty,unitprice,
-
-                IF(disc1value=0,'',IF(disc1type='%',CONCAT(disc1value,disc1type),CONCAT(disc1type,disc1value))) AS disc1,
-
-                IF(disc2value=0,'',IF(disc2type='%',CONCAT(disc2value,disc2type),CONCAT(disc2type,disc2value))) AS disc2,discamt,
-
-                netunitprice,qty,totalprice,itemremark,IF(pricetype='foc','FOC','') AS pricetype,
-
-
-
-                line,itemlink,a.refno,disc1type,disc2type,LOWER(um) AS um,
-
-                IF(qty<bulkqty OR bulkqty=1,'',CONCAT('= ',IF(MOD(qty/bulkqty,1)=0,qty/bulkqty,ROUND(qty/bulkqty,1)),' ',umbulk)) AS ctn,
-
-                IF(bqty=0,'',IF(bulkqty=packsize OR bulkqty<=1,'',CONCAT('[',Bqty,' ',LOWER(umbulk),IF(pqty=0,'',CONCAT(' ',Pqty)),']'))) AS b_qty,
-
-                IF(disc1value=0,'',IF(disc1type='%',CONCAT(ROUND(disc1value,2),disc1type),CONCAT(disc1type,ROUND(disc1value,2)))) AS disc1value,
-
-                IF(disc2value=0,'',IF(disc2type='%',CONCAT(ROUND(disc2value,2),disc2type),CONCAT(disc2type,ROUND(disc2value,2)))) AS disc2value,
-
-                CONCAT(IF(disc1value=0,'',IF(disc1type='%',CONCAT(IF(MOD(disc1value,1)=0,ROUND(disc1value),ROUND(disc1value,2)),disc1type),
-
-                CONCAT(disc1type,ROUND(disc1value,2)))),IF(disc2value=0,'',CONCAT(IF(disc1value=0,'',' + '),IF(disc2type='%',IF(MOD(disc2value,1)=0,
-
-                ROUND(disc2value),ROUND(disc2value,2)),disc2type),ROUND(disc2value,2)))) AS disc_desc,
-
-
-
-
-
-                IF(a.gst_tax_code IN ('zrl','sr'),UPPER(LEFT(gst_tax_code,1)),UPPER(gst_tax_code)) AS gst_unit_code,
-
-                ROUND(gst_tax_amount/qty,4) AS gst_unit_tax,
-
-                ROUND(IF(discvalue=0,netunitprice+(gst_tax_amount/qty),((totalprice-discvalue)+gst_tax_amount)/qty),4) AS gst_unit_cost,
-
-                gst_tax_amount AS gst_child_tax,
-
-
-
-                ROUND((totalprice-discvalue)+
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),gst_tax_amount,
-
-                IF(invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile),taxamount,0)),2) AS gst_unit_total,
-
-
-
-                gst_tax_sum AS gst_main_tax,
-
-                ROUND(total+gst_tax_sum,2) AS gst_main_total,
-
-                CONCAT(packsize,IF(bulkqty=1,'',CONCAT('/',bulkqty))) AS ps,
-
-
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),gst_tax_code,
-
-                IF(invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile),taxcodemap,'')) AS gst_tax_code,
-
-
-
-                a.gst_tax_rate,
-
-
-
-                IF(invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile),
-
-                IF(LENGTH(MID(gst_tax_amount,POSITION('.' IN gst_tax_amount)+1,10))<=2,FORMAT(gst_tax_amount,2),
-
-                FORMAT(gst_tax_amount,4)),
-
-                IF(invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile),
-
-                FORMAT(taxamount,2),'0.00')) AS gst_tax_amount,
-
-
-
-                ROUND(discvalue/qty,4) AS unit_disc_prorate,
-
-                IF(discvalue=0,netunitprice,ROUND((totalprice-discvalue)/qty,4)) AS unit_price_bfr_tax,
-
-                ROUND((totalprice-discvalue),4) AS total_price_bfr_tax
-
-
-
-                FROM backend.sichild a
-
-
-
-                INNER JOIN backend.simain b
-
-                ON a.refno=b.refno
-
-
-
-                LEFT JOIN (SELECT itemcode, remark AS item_remark FROM backend.itemmaster )c 
-
-                ON a.`Itemcode` = c.`Itemcode`
-
-
-
-                WHERE a.refno='$row->RefNo' AND qty<>0
-
-                ORDER BY line");
-
-            $query3 = $this->db->query("SELECT a.*,
-
-                IF((SELECT gst_end_date FROM backend.companyprofile)>=invoicedate
-
-                AND (SELECT country FROM backend.companyprofile)='malaysia','Tax @ 6%','Tax @ >0%') AS tax_sum_title FROM
-
-
-
-                (SELECT a.refno,SUM(gst_zero) AS gst_zero,SUM(gst_std) AS gst_std FROM 
-
-
-
-                (SELECT a.refno,ROUND(SUM(totalprice-discvalue),2) AS gst_zero,0 AS gst_std FROM backend.sichild a
-
-                INNER JOIN backend.simain b
-
-                ON a.refno=b.refno
-
-                WHERE gst_tax_amount=0 AND a.refno='$row->RefNo'
-
-                GROUP BY refno
-
-
-
-                UNION ALL
-
-
-
-                SELECT a.refno,0 AS gst_zero,ROUND(SUM(totalprice-discvalue),2) AS gst_std FROM backend.sichild a
-
-                INNER JOIN backend.simain b
-
-                ON a.refno=b.refno
-
-                WHERE gst_tax_amount<>0 AND a.refno='$row->RefNo'
-
-                GROUP BY refno
-
-
-
-                UNION ALL
-
-
-
-                SELECT a.refno,0 AS gst_zero,
-
-                ROUND(SUM(ABS(value_calculated)),2) AS value_calculated
-
-                FROM backend.trans_surcharge_discount a
-
-                WHERE a.refno='$row->RefNo' AND dn=0 AND value_factor=1 AND gst_amt<>0
-
-                GROUP BY refno) a
-
-
-
-                GROUP BY refno) a
-
-
-
-                INNER JOIN backend.simain b
-
-                ON a.refno=b.refno");
-
-            $query4 = $this->db->query("SELECT a.refno,'0' AS sort,'0' AS sequence,
-
-                CONCAT('Total Amount') AS code_grn,
-
-                0 AS value_grn,
-
-                subtotal1 AS value_calculated FROM backend.simain a
-
-                WHERE a.refno='$row->RefNo' 
-
-
-
-                UNION ALL
-
-
-
-                SELECT a.refno,'1' AS sort,'1' AS sequence,CONCAT(IF(discount1type='%',IF(discount1>0,'Discount %   ','Surchage %   '),
-
-                IF(discount1>0,'Discount $   ','Surcharge $   '))) AS code_grn,
-
-                discount1*-1 AS value_grn,
-
-                ROUND(subtotal1*disc1percent/100,2) AS value_calculated FROM backend.simain a
-
-                LEFT JOIN backend.trans_surcharge_discount b
-
-                ON a.refno=b.refno
-
-                WHERE a.refno='$row->RefNo' AND ROUND(subtotal1*disc1percent/100,2)<>0 AND b.refno IS NULL AND discount1<>0
-
-
-
-                UNION ALL
-
-
-
-                SELECT a.refno,'2' AS sort,'2' AS sequence,CONCAT(IF(discount2type='%',IF(discount2>0,'Discount %   ','Surchage %   '),
-
-                IF(discount2>0,'Discount $   ','Surcharge $   '))) AS code_grn,
-
-                discount2*-1 AS value_grn,
-
-                ROUND(subtotal2*disc2percent/100,2) AS value_calculated FROM backend.simain a
-
-                LEFT JOIN backend.trans_surcharge_discount b
-
-                ON a.refno=b.refno
-
-                WHERE a.refno='$row->RefNo' AND ROUND(subtotal2*disc2percent/100,2)<>0 AND b.refno IS NULL AND discount2<>0
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'A1' AS sort,sequence,CONCAT(CODE,' (',surcharge_disc_type,')') AS code_grn,
-
-                surcharge_disc_value*value_factor AS value_grn,
-
-                ROUND(value_calculated,2) AS value_calculated
-
-                FROM backend.trans_surcharge_discount 
-
-                WHERE refno='$row->RefNo' AND dn=0
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'A2' AS sort,'A2' AS sequence,'Total Include Surcharge/Disc' AS code_grn,0 AS value_grn,
-
-                total AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' AND discount1+discount2<>0 AND doc_type<>'EStore'
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'B1' AS sort,'B1' AS sequence,'Total Tax Amount' AS code_grn,0 AS value_grn,
-
-                ROUND(gst_tax_sum+surchg_tax_sum+totaltax,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' AND 
-
-                (invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile) OR
-
-                invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile)) 
-
-
-
-                /*UNION ALL
-
-
-
-                SELECT refno,'B2' AS sort,'B2' AS sequence,'Surcharge GST Amount' AS code_grn,0 AS value_grn,
-
-                ROUND(surchg_tax_sum,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' and surchg_tax_sum<>0*/
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'C1' AS sort,'C1' AS sequence,'GST Adjustment' AS code_grn,0 AS value_grn,
-
-                ROUND(gst_adj,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' AND gst_adj<>0
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'D1' AS sort,'D1' AS sequence,'Total Amount Include Tax' AS code_grn,0 AS value_grn,
-
-                ROUND(total+gst_tax_sum+surchg_tax_sum+totaltax+gst_adj,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' AND 
-
-                (invoicedate BETWEEN (SELECT gst_start_date FROM backend.companyprofile)
-
-                AND (SELECT gst_end_date FROM backend.companyprofile) OR
-
-                invoicedate BETWEEN (SELECT sst_start_date FROM backend.companyprofile)
-
-                AND (SELECT sst_end_date FROM backend.companyprofile)) 
-
-
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'E1' AS sort,'E1' AS sequence,'Rounding Adjustment' AS code_grn,0 AS value_grn,
-
-                ROUND(rounding_adj,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' AND rounding_adj<>0
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'F1' AS sort,'F1' AS sequence,'Total Nett Amount' AS code_grn,0 AS value_grn,
-
-                ROUND(total+gst_tax_sum+surchg_tax_sum+rounding_adj+totaltax+gst_adj,2) AS value_calculated FROM backend.simain
-
-                WHERE refno='$row->RefNo' 
-
-                AND (ROUND(gst_tax_sum+surchg_tax_sum+rounding_adj+totaltax+gst_adj,2)<>0
-
-                OR discount1<>0 OR discount2<>0) AND doc_type<>'EStore'
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,'A' AS sort,'G1' AS sequence,paytype AS code_grn,
-
-                0 AS value_grn,
-
-                ROUND(payamt*value_factor,2) AS value_calculated
-
-                FROM backend.si_payment 
-
-                WHERE refno='$row->RefNo' AND value_factor=-1
-
-
-
-                UNION ALL
-
-
-
-                SELECT a.refno,'F1' AS sort,'F1' AS sequence,'Total Nett Amount' AS code_grn,0 AS value_grn,
-
-                ROUND(subtotal1+gst_tax_sum+surchg_tax_sum+totaltax+rounding_adj+b.amount,2) AS value_calculated
-
-                FROM backend.simain a
-
-                INNER JOIN 
-
-                (
-
-                SELECT refno,SUM(amount) AS amount FROM
-
-                (
-
-                SELECT refno,SUM(payamt*value_factor) AS amount FROM backend.si_payment
-
-                WHERE value_factor = -1
-
-                AND refno = '$row->RefNo'
-
-
-
-                UNION ALL
-
-
-
-                SELECT refno,SUM(value_calculated) AS amount FROM backend.`trans_surcharge_discount`
-
-                WHERE refno = '$row->RefNo'
-
-                )a
-
-                GROUP BY refno
-
-                )b
-
-                ON a.refno = b.refno
-
-                AND doc_type='EStore'
-
-
-
-                /*
-
-                SELECT a.refno,'F1' AS sort,'F1' AS sequence,'Total Nett Amount' AS code_grn,0 AS value_grn,
-
-                ROUND(total+gst_tax_sum+surchg_tax_sum+totaltax+rounding_adj-SUM(payamt),2) AS value_calculated FROM backend.simain a
-
-                INNER JOIN backend.si_payment b
-
-                ON a.refno = b.refno
-
-                WHERE a.refno='$row->RefNo' 
-
-                #AND (ROUND(gst_tax_sum+surchg_tax_sum+rounding_adj+totaltax+gst_adj,2)<>0
-
-                #OR discount1<>0 OR discount2<>0)
-
-                AND value_factor=-1 AND doc_type='EStore'
-
-                GROUP BY refno*/
-
-
-
-                ORDER BY sort,sequence");
-
-            
-
-            $data3 = array(
-
-                'data2' => $data2->result(),
-		'query' => array(
-
-		        'query1' => $query1->result(),
-
-		        'query2' => $query2->result(),
-
-		        'query3' => $query3->result(),
-
-		        'query4' => $query4->result()
-		)
-
-            );         
-
-
-		//print_r($data3);die;
-            $username = 'admin'; //get from rest.php
-
-            $password = '1234'; //get from rest.php
-
-
-	
-            // $url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/pomain2';
-
-            //$url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/simain';
-	    $url = 'http://office.panda-eco.com:18243/rest_api/index.php/Panda_b2b/simain';
-
-             //echo $url;die;
-
-            $ch = curl_init($url);
-
-
-
-            curl_setopt($ch, CURLOPT_TIMEOUT, 0);
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-
-            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
-
-            curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
-
-            curl_setopt($ch, CURLOPT_POST, 1);
-
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data3));
-
-
-
-            $result = curl_exec($ch);
-
-            //echo $result;die;
-
-            $output =  json_decode($result);
-
-            $status = $output->message;
-
-            if($status == "true")
-
-            {
-
-                    //$run = $this->db->query("UPDATE backend.simain SET uploaded = '1' , uploaded_at = '$date' WHERE RefNo = '$row->RefNo'"); 
-
-            }
-
-            else
-
-            {
-
-                    //$run = $this->db->query("UPDATE backend.pomain SET hq_update = '3' WHERE RefNo = '$row->RefNo'");
-
-            }
-
-        }//close foreach
-
-
-
-        $this->response(
-
-            [
-
-                'status' => TRUE,
-
-                'message' => 'Success'
-
-            ]
-
-            // $this->Main_model->query_call('Api','login_validation_get', $data)
-
-        ); 
-
-    }
-
-    public function pomain_info_get()
-
-    {
-
-
-
-        $query1 = $this->db->query("SELECT a.*
-
-		FROM backend.`pomain` AS a
-
-		INNER JOIN backend.`pochild` AS b
-
-		ON a.`RefNo` = b.`RefNo`
-
-		WHERE a.`SCode` = 'P189'
-
-		AND a.`RefNo` = 'BERPO21101327'
-
-		GROUP BY a.`RefNo`");
-
-
-
-        $query2 = $this->db->query("SELECT b.*
-
-		FROM backend.`pomain` AS a
-
-		INNER JOIN backend.`pochild` AS b
-
-		ON a.`RefNo` = b.`RefNo`
-
-		WHERE a.`SCode` = 'P189'
-
-		AND a.`RefNo` = 'BERPO21101327'");
-
-
-
-        $json = array(
-
-            'pomain' => $query1->result(),
-
-            'pochild' => $query2->result(),
-
-        );
-
-
-
-        $this->response($json);
-
-    }
-
-     public function get_backend_info_post()
+    public function get_backend_info_post()
     {
         $refno = $this->input->post('refno');
         $type = $this->input->post('type');
@@ -2805,7 +1502,7 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $result_child = [];
             $result_variance_amount = [];
         } elseif ($type == 'CN_Note') {
-            $result_main =  $this->db->query("SELECT a.`RefNo`,a.`DocDate`,a.`BillStatus`,a.`postdatetime`,a.`ibt`,a.`uploaded`,a.`uploaded_at` FROM backend.cnnotemain AS a WHERE a.promo_refno IN($refno_in)")->result();
+            $result_main =  $this->db->query("SELECT a.`RefNo`,a.`DocDate`,a.`BillStatus`,a.`postdatetime`,a.`ibt`,a.`uploaded`,a.`uploaded_at` FROM backend.cnnotemain AS a WHERE a.refno IN($refno_in)")->result();
             $result_child =  $this->db->query("SELECT a.`RefNo`,a.`Line` FROM backend.cnnotechild AS a WHERE a.refno IN($refno_in)")->result();
             $result_variance_amount = [];
         } elseif ($type == 'DN_Note') {
@@ -2821,12 +1518,8 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
             $result_child = [];
             $result_variance_amount = [];
         } elseif ($type == 'DI') {
-            $result_main =  $this->db->query("SELECT a.docdate,a.inv_refno,a.refno,a.posted,a.posted_at,a.uploaded,a.uploaded_at FROM backend.discheme_taxinv AS a WHERE a.refno IN($refno_in)")->result();
+            $result_main =  $this->db->query("SELECT a.docdate,a.inv_refno,a.refno,a.posted,a.posted_at,a.uploaded,a.uploaded_at FROM backend.discheme_taxinv AS a WHERE a.inv_refno IN($refno_in)")->result();
             $result_child = [];
-            $result_variance_amount = [];
-        } elseif ($type == 'SI') {
-            $result_main =  $this->db->query("SELECT a.`RefNo`,a.`BillStatus`,a.`ibt`,a.`EXPORT_ACCOUNT`,a.`uploaded`,a.`uploaded_at` FROM backend.simain AS a WHERE a.refno IN($refno_in)")->result();
-            $result_child = $this->db->query("SELECT a.`RefNo`,a.`Line`,a.`postdatetime_c` FROM backend.sichild AS a WHERE a.refno IN($refno_in)")->result();
             $result_variance_amount = [];
         }
         // elseif ($type == 'other_doc') {
@@ -2850,7 +1543,6 @@ WHERE a.type = 'grmain_dncn' AND a.uploaded = 2");
 
         $this->response($json);
     }
-
+     
 }
-
 
