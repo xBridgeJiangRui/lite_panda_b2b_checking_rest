@@ -296,6 +296,9 @@ class Setup_new_retailer extends REST_controller
 
     public function supcus_to_b2b_get()
     {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '848M');
+
         $data = $this->db->query("SELECT (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,          
         Type,Code,Name,Add1,Add2,Add3,City,State,Country,Postcode,Tel,Fax,Contact,Mobile,Term,PaymentDay,BankAcc,CreditLimit,MonitorCredit,Remark,                                                     
         PointBF,PointCumm,PointSum,Member,memberno,DATE_FORMAT(ExpiryDate, '%Y-%m-%d') AS ExpiryDate,CycleVisit,DeliveryTerm,DATE_FORMAT(IssuedStamp, '%Y-%m-%d %H:%i:%s') AS IssuedStamp,
@@ -311,7 +314,7 @@ class Setup_new_retailer extends REST_controller
         $password = '1234'; //get from rest.php
 
         //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/supcus2';
-        $url = $this->b2b_ip . '/rest_api/index.php/panda_b2b/supcus2';
+        $url = $this->b2b_ip . '/rest_api/index.php/panda_b2b/supcus3';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -363,8 +366,6 @@ class Setup_new_retailer extends REST_controller
 
         $company_info = $this->db->query("SELECT *
         FROM backend.companyprofile AS a")->result_array();
-        print_r($company_info[0]);
-        die;
 
         $data = array(
             'acc_guid' => $acc_guid,
@@ -402,7 +403,7 @@ class Setup_new_retailer extends REST_controller
         curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
         curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 
         $result = curl_exec($ch);
         //echo $result;die;
