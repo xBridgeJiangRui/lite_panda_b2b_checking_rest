@@ -130,16 +130,25 @@ class Setup_new_retailer extends REST_controller
 
         // insert run once config data
         if ($status == 'true' || $status == '') {
-            // insert data rest_api.run_once_config
-            $insert_data = $this->db->query("REPLACE INTO rest_api.`run_once_config`
-            VALUES(REPLACE(UPPER(UUID()),'-',''),'$date_start','1')");
 
-            if ($insert_data == 1) {
+            $check_run_once_config = $this->db->query("SELECT *
+            FROM rest_api.run_once_config AS a")->result_array();
+
+            if (count($check_run_once_config) > 0) {
                 $status = 'true';
-                $message['insert_run_once_config'] = 'Successful insert data run_once_config at rest_api';
+                $message['insert_run_once_config'] = 'Data already exit';
             } else {
-                $status = 'false';
-                $message['insert_run_once_config'] = 'Unsuccessful insert data run_once_config at rest_api';
+                // insert data rest_api.run_once_config
+                $insert_data = $this->db->query("REPLACE INTO rest_api.`run_once_config`
+                VALUES(REPLACE(UPPER(UUID()),'-',''),'$date_start','1')");
+
+                if ($insert_data == 1) {
+                    $status = 'true';
+                    $message['insert_run_once_config'] = 'Successful insert data run_once_config at rest_api';
+                } else {
+                    $status = 'false';
+                    $message['insert_run_once_config'] = 'Unsuccessful insert data run_once_config at rest_api';
+                }
             }
         } else {
             $status = 'true';
@@ -181,6 +190,14 @@ class Setup_new_retailer extends REST_controller
 
         // 
         if ($status == 'true' || $status == '') {
+
+            $check_b2b_config = $this->db->query("SELECT *
+            FROM rest_api.b2b_config AS a")->result_array();
+
+            if (count($check_b2b_config) > 0) {
+                $this->db->query("DELETE FROM rest_api.b2b_config");
+            }
+
             // insert data rest_api.b2b_config
             $data[] = array(
                 'guid' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
@@ -326,9 +343,6 @@ class Setup_new_retailer extends REST_controller
     public function insert_new_acc_from_backend_post()
     {
         $isactive = $this->input->post("isactive");
-        $acc_name = $this->input->post("acc_name");
-        $acc_regno = $this->input->post("acc_regno");
-        $acc_doc_name = $this->input->post("acc_doc_name");
         $file_path = $this->input->post("file_path");
         $rest_url = $this->input->post("rest_url");
         $trial_mode = $this->input->post("trial_mode");
@@ -347,12 +361,24 @@ class Setup_new_retailer extends REST_controller
         WHERE a.active = '1'
         LIMIT 1")->row('customer_guid');
 
+        $company_info = $this->db->query("SELECT *
+        FROM backend.companyprofile AS a")->result_array();
+        print_r($company_info[0]);
+        die;
+
         $data = array(
             'acc_guid' => $acc_guid,
             'isactive' => $isactive,
-            'acc_name' => $acc_name,
-            'acc_regno' => $acc_regno,
-            'acc_doc_name' => $acc_doc_name,
+            'acc_name' => $company_info[0]['CompanyName'],
+            'acc_regno' => $company_info[0]['comp_reg_no'],
+            'acc_gstno' => $company_info[0]['gst_no'],
+            'acc_taxcode' => $company_info[0]['gst_no'],
+            'acc_add1' => $company_info[0]['Address1'],
+            'acc_add2' => $company_info[0]['Address2'],
+            'acc_add3' => $company_info[0]['Address3'],
+            'acc_postcode' => $company_info[0]['postalcode'],
+            'acc_state' => $company_info[0]['state'],
+            'acc_doc_name' => $company_info[0]['CompanyName'],
             'file_path' => $file_path,
             'rest_url' => $rest_url,
             'trial_mode' => $trial_mode,
