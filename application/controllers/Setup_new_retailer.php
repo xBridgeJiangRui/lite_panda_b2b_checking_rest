@@ -8,71 +8,9 @@ class Setup_new_retailer extends REST_controller
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('Main_model');
         $this->load->helper('url');
         $this->load->database();
         date_default_timezone_set("Asia/Kuala_Lumpur");
-
-        $check_table_existed = $this->db->query("SELECT COUNT(*) AS table_count FROM information_schema.tables WHERE table_schema = 'rest_api' AND table_name = 'b2b_config'");
-        if ($check_table_existed->row('table_count') <= 0) {
-            $response = array(
-                'status' => "false",
-                'message' => "Database or Table not setup"
-            );
-
-            echo json_encode($response);
-            die;
-        }
-
-        $b2b_ip_https = $this->db->query("SELECT * FROM rest_api.b2b_config WHERE code = 'HTTP' AND isactive = 1");
-        if ($b2b_ip_https->num_rows() <= 0) {
-            $this->b2b_ip_https = '';
-            $response = array(
-                'status' => "false",
-                'message' => "Protocol not setup"
-            );
-
-            echo json_encode($response);
-            die;
-        } else {
-            $this->b2b_ip_https = $b2b_ip_https->row('value');
-        }
-
-        $b2b_public_ip = $this->db->query("SELECT * FROM rest_api.b2b_config WHERE code = 'IP' AND isactive = 1");
-        if ($b2b_public_ip->num_rows() <= 0) {
-            $this->b2b_public_ip = '';
-            $response = array(
-                'status' => "false",
-                'message' => "IP not setup"
-            );
-
-            echo json_encode($response);
-            die;
-        } else {
-            $this->b2b_public_ip = $b2b_public_ip->row('value');
-        }
-
-        $b2b_ip_port = $this->db->query("SELECT * FROM rest_api.b2b_config WHERE code = 'PORT' AND isactive = 1");
-        if ($b2b_ip_port->num_rows() <= 0) {
-            $this->b2b_ip_port = '';
-            $response = array(
-                'status' => "false",
-                'message' => "Port not setup"
-            );
-
-            echo json_encode($response);
-            die;
-        } else {
-            $this->b2b_ip_port = $b2b_ip_port->row('value');
-        }
-
-        // echo $this->b2b_ip_https.'--'.$this->b2b_public_ip.'--'.$this->b2b_ip_port;
-        $this->b2b_ip = $this->b2b_ip_https . $this->b2b_public_ip . $this->b2b_ip_port;
-        // echo $this->b2b_ip;
-        // die;
-        // die;
-        // $this->b2b_ip = 'http://52.163.112.202';
-        // $this->b2b_ip = 'http://127.0.0.1';
     }
 
     public function index_post()
@@ -260,8 +198,11 @@ class Setup_new_retailer extends REST_controller
         $username = 'admin'; //get from rest.php
         $password = '1234'; //get from rest.php
 
+        $prefix_url = $this->db->query("SELECT GROUP_CONCAT(a.value SEPARATOR '') as prefix_url
+        FROM rest_api.b2b_config AS a")->row('prefix_url');
+
         //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/cp_set_branch2';
-        $url = $this->b2b_ip . '/rest_api/index.php/panda_b2b/cp_set_branch2';
+        $url = $prefix_url . '/rest_api/index.php/panda_b2b/cp_set_branch2';
         // $url = '';
         $ch = curl_init($url);
 
@@ -310,11 +251,14 @@ class Setup_new_retailer extends REST_controller
         poso_line_max,apply_actual_cn,PromoRebateAsTaxInv,PurchaseDNAmtAsTaxInv,member_accno,RoundingAdjust
         FROM backend.supcus");
 
+        $prefix_url = $this->db->query("SELECT GROUP_CONCAT(a.value SEPARATOR '') as prefix_url
+        FROM rest_api.b2b_config AS a")->row('prefix_url');
+
         $username = 'admin'; //get from rest.php
         $password = '1234'; //get from rest.php
 
         //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/supcus2';
-        $url = $this->b2b_ip . '/rest_api/index.php/panda_b2b/supcus3';
+        $url = $prefix_url . '/rest_api/index.php/panda_b2b/supcus3';
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -343,6 +287,7 @@ class Setup_new_retailer extends REST_controller
         $this->response($json);
     }
 
+
     public function insert_new_acc_from_backend_post()
     {
         $isactive = $this->input->post("isactive");
@@ -355,6 +300,7 @@ class Setup_new_retailer extends REST_controller
         $public_ip_2 = $this->input->post("public_ip_2");
         $seq = $this->input->post("seq");
         $row_seq = $this->input->post("row_seq");
+        $username = $this->input->post("username");
 
         $status = '';
         $message = '';
@@ -366,6 +312,9 @@ class Setup_new_retailer extends REST_controller
 
         $company_info = $this->db->query("SELECT *
         FROM backend.companyprofile AS a")->result_array();
+
+        $prefix_url = $this->db->query("SELECT GROUP_CONCAT(a.value SEPARATOR '') as prefix_url
+        FROM rest_api.b2b_config AS a")->row('prefix_url');
 
         $data = array(
             'acc_guid' => $acc_guid,
@@ -389,12 +338,14 @@ class Setup_new_retailer extends REST_controller
             'row_seq' =>  $row_seq,
             'public_ip' => $public_ip,
             'public_ip_2' => $public_ip_2,
+            'username' => $username,
         );
 
         $username = 'admin'; //get from rest.php
         $password = '1234'; //get from rest.php
 
-        $url = $this->b2b_ip . '/rest_b2b/index.php/Setup_new_retailer/insert_new_acc';
+        $url = $prefix_url . '/rest_b2b/index.php/Setup_new_retailer/insert_new_acc';
+
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
@@ -407,9 +358,11 @@ class Setup_new_retailer extends REST_controller
 
         $result = curl_exec($ch);
         //echo $result;die;
-        $output =  json_decode($result);
-        $status = $output->message;
-        if ($status == "true") {
+        $output =  json_decode($result, true);
+
+        $status = $output['status'];
+
+        if ($status == "true" || $status == true) {
             $json = array(
                 'status' => TRUE,
                 'message' => 'Success'
@@ -419,16 +372,6 @@ class Setup_new_retailer extends REST_controller
                 'status' => FALSE,
                 'message' => 'Unsuccess'
             );
-        }
-
-        $insert_data_acc = $this->db->insert('lite_b2b.acc', $data);
-
-        if ($insert_data_acc == 1) {
-            $status = 'true';
-            $message = 'Successful insert data acc at lite_b2b';
-        } else {
-            $status = 'false';
-            $message = 'Unsuccessful insert data acc at lite_b2b';
         }
 
         $json = array(
