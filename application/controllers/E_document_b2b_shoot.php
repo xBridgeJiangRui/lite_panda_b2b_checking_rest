@@ -1199,4 +1199,523 @@ class E_document_b2b_shoot extends REST_Controller{
             die;
         } 
     }
+
+    //jr created 2022-07-14 for flow b2b to hq update backend documents
+    public function e_invoice_generated_get()
+    {
+        $database1 = 'rest_api';
+        $table1 = 'run_once_config';
+
+        $customer_guid_array = $this->db->query("SELECT * FROM $database1.$table1 WHERE active = 1");
+
+        if($customer_guid_array->num_rows() <= 0)
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "Customer Guid Not Setup"
+            );
+            echo json_encode($reponse);
+            die;
+        }
+
+        $customer_guid = $customer_guid_array->row('customer_guid');
+
+        $data = array(
+            'customer_guid' => $customer_guid,
+        );
+        //echo json_encode($data);die;
+        $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/einv_generated_data';
+        //echo $url;die;
+        // die;
+        $cuser_name = 'ADMIN';
+        $cuser_pass = '1234';
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+        curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        $result = curl_exec($ch);
+        $output = json_decode($result);
+        // $status = json_encode($output);
+        // print_r($output->result);die;
+        //echo $result;die;
+        //close connection
+        curl_close($ch);
+
+        if(isset($output->status))
+        {
+            if($output->status == "true")
+            {
+                $json_data = $output->result;
+                //print_r($json_data); die;
+                foreach($json_data as $row)
+                {
+                    $refno = $row->refno;
+                    $einvno = $row->einvno;
+                    $inv_date = $row->inv_date;
+
+                    $update_status = $this->db->query("UPDATE backend.grmain SET `status` = 'COMPLETED',b2b_sup_doc_no = '$einvno',ext_doc_date = '$inv_date' WHERE RefNo = '$refno'");
+
+                    //$data_array = [];
+                    if($update_status > 0)
+                    {
+                        $data_array[] = array(
+                            'refno' => $refno,
+                            'customer_guid' => $customer_guid
+                        );
+                    }
+                    else
+                    {   
+                        $data_array = [];
+                    }
+                }
+                
+                if(count($data_array) > 0 )
+                {
+                    //print_r(count($data_array)); die;
+
+                    $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/update_b2b_acc_flag';
+                    //echo $url;die;
+                    // die;
+                    $cuser_name = 'ADMIN';
+                    $cuser_pass = '1234';
+
+                    $ch = curl_init($url);
+
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+                    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+                    curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_array));
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+                    $result = curl_exec($ch);
+                    $output = json_decode($result);
+                    // $status = json_encode($output);
+                    // print_r($output->result);die;
+                    //echo $result;die;
+                    //close connection
+                    curl_close($ch);
+
+                    if(isset($output->status))
+                    {
+                        if($output->status == "true")
+                        {
+                            $reponse = array(
+                                'status' => "true",
+                                'message' => "EINV Success Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                        else
+                        {
+                            $reponse = array(
+                                'status' => "false",
+                                'message' => "EINV Failed Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                    }
+                    else
+                    {
+                        $reponse = array(
+                            'status' => "false",
+                            'message' => "EINV No response from b2b acknowledge update acc flag"
+                        );
+                        echo json_encode($reponse);
+                        die;
+                    }
+                } 
+                
+                //print_r($data_array); die;
+                if($update_status > 0)
+                {
+                    $reponse = array(
+                        'status' => "true",
+                        'message' => "EINV Success Update"
+                    );
+                }
+                else
+                {
+                    $reponse = array(
+                        'status' => "false",
+                        'message' => "EINV Failed to Update"
+                    );
+                }
+
+                echo json_encode($reponse);
+                die;
+
+            }
+            else
+            {
+                $reponse = array(
+                    'status' => "false",
+                    'message' => "EINV Got response but Empty Data"
+                );
+                echo json_encode($reponse);
+                die;
+            }
+        }
+        else
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "No response from b2b"
+            );
+            echo json_encode($reponse);
+            die;
+        } 
+    }
+
+    public function e_cn_generated_get()
+    {
+        $database1 = 'rest_api';
+        $table1 = 'run_once_config';
+
+        $customer_guid_array = $this->db->query("SELECT * FROM $database1.$table1 WHERE active = 1");
+
+        if($customer_guid_array->num_rows() <= 0)
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "Customer Guid Not Setup"
+            );
+            echo json_encode($reponse);
+            die;
+        }
+
+        $customer_guid = $customer_guid_array->row('customer_guid');
+
+        $data = array(
+            'customer_guid' => $customer_guid,
+        );
+        //echo json_encode($data);die;
+        $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/ecn_generated_data';
+        //echo $url;die;
+        // die;
+        $cuser_name = 'ADMIN';
+        $cuser_pass = '1234';
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+        curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        $result = curl_exec($ch);
+        $output = json_decode($result);
+        // $status = json_encode($output);
+        // print_r($output->result);die;
+        //echo $result;die;
+        //close connection
+        curl_close($ch);
+
+        if(isset($output->status))
+        {
+            if($output->status == "true")
+            {
+                $json_data = $output->result;
+                //print_r($json_data); die;
+                foreach($json_data as $row)
+                {
+                    $refno = $row->ecn_refno;
+                    $ecn_sup_no = $row->ecn_sup_no;
+                    $ecn_sup_date = $row->ecn_sup_date;
+                    $transtype = $row->transtype;
+
+                    $update_status = $this->db->query("UPDATE backend.grmain_dncn SET ext_doc_no = '$ecn_sup_no',ext_doc_date = '$ecn_sup_date' WHERE RefNo = '$refno' AND transtype = '$transtype'");
+
+                    //$data_array = [];
+                    if($update_status > 0)
+                    {
+                        $data_array[] = array(
+                            'refno' => $refno,
+                            'customer_guid' => $customer_guid,
+                            'transtype' => $transtype,
+                        );
+                    }
+                    else
+                    {   
+                        $data_array = '';
+                    }
+                }
+
+                if(count($data_array) > 0 )
+                {
+                    //print_r(count($data_array)); die;
+
+                    $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/update_b2b_ecn_acc_flag';
+                    //echo $url;die;
+                    // die;
+                    $cuser_name = 'ADMIN';
+                    $cuser_pass = '1234';
+
+                    $ch = curl_init($url);
+
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+                    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+                    curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_array));
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+                    $result = curl_exec($ch);
+                    $output = json_decode($result);
+                    // $status = json_encode($output);
+                    // print_r($output->result);die;
+                    //echo $result;die;
+                    //close connection
+                    curl_close($ch);
+
+                    if(isset($output->status))
+                    {
+                        if($output->status == "true")
+                        {
+                            $reponse = array(
+                                'status' => "true",
+                                'message' => "ECN Success Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                        else
+                        {
+                            $reponse = array(
+                                'status' => "false",
+                                'message' => "ECN Failed Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                    }
+                    else
+                    {
+                        $reponse = array(
+                            'status' => "false",
+                            'message' => "ECN No response from b2b acknowledge update acc flag"
+                        );
+                        echo json_encode($reponse);
+                        die;
+                    }
+                } 
+                
+                //print_r($data_array); die;
+                if($update_status > 0)
+                {
+                    $reponse = array(
+                        'status' => "true",
+                        'message' => "ECN Success Update"
+                    );
+                }
+                else
+                {
+                    $reponse = array(
+                        'status' => "false",
+                        'message' => "ECN Failed to Update"
+                    );
+                }
+
+                echo json_encode($reponse);
+                die;
+
+            }
+            else
+            {
+                $reponse = array(
+                    'status' => "false",
+                    'message' => "ECN Got response but Empty Data"
+                );
+                echo json_encode($reponse);
+                die;
+            }
+        }
+        else
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "No response from b2b"
+            );
+            echo json_encode($reponse);
+            die;
+        } 
+    }
+
+    public function e_prdn_generated_get()
+    {
+        $database1 = 'rest_api';
+        $table1 = 'run_once_config';
+
+        $customer_guid_array = $this->db->query("SELECT * FROM $database1.$table1 WHERE active = 1");
+
+        if($customer_guid_array->num_rows() <= 0)
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "Customer Guid Not Setup"
+            );
+            echo json_encode($reponse);
+            die;
+        }
+
+        $customer_guid = $customer_guid_array->row('customer_guid');
+
+        $data = array(
+            'customer_guid' => $customer_guid,
+        );
+        //echo json_encode($data);die;
+        $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/prdn_generated_data';
+        //echo $url;die;
+        // die;
+        $cuser_name = 'ADMIN';
+        $cuser_pass = '1234';
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+        curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+        $result = curl_exec($ch);
+        $output = json_decode($result);
+        // $status = json_encode($output);
+        // print_r($output->result);die;
+        //echo $result;die;
+        //close connection
+        curl_close($ch);
+
+        if(isset($output->status))
+        {
+            if($output->status == "true")
+            {
+                $json_data = $output->result;
+                //print_r($json_data); die;
+                foreach($json_data as $row)
+                {
+                    $refno = $row->refno;
+                    $ecn_sup_no = $row->ecn_sup_no;
+                    $ecn_sup_date = $row->ecn_sup_date;
+
+                    $update_status = $this->db->query("UPDATE backend.dbnotemain SET b2b_sup_doc_no = '$ecn_sup_no',ext_doc_date = '$ecn_sup_date' , b2b_status = 'COMPLETED'  WHERE RefNo = '$refno' ");
+
+                    //$data_array = [];
+                    if($update_status > 0)
+                    {
+                        $data_array[] = array(
+                            'refno' => $refno,
+                            'customer_guid' => $customer_guid,
+                        );
+                    }
+                    else
+                    {   
+                        $data_array = '';
+                    }
+                }
+
+                if(count($data_array) > 0 )
+                {
+                    //print_r(count($data_array)); die;
+
+                    $url = $this->b2b_ip.'/rest_api/index.php/Panda_b2b/update_b2b_prdn_acc_flag';
+                    //echo $url;die;
+                    // die;
+                    $cuser_name = 'ADMIN';
+                    $cuser_pass = '1234';
+
+                    $ch = curl_init($url);
+
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+                    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+                    curl_setopt($ch, CURLOPT_USERPWD, "$cuser_name:$cuser_pass");
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data_array));
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER , false);
+                    $result = curl_exec($ch);
+                    $output = json_decode($result);
+                    // $status = json_encode($output);
+                    // print_r($output->result);die;
+                    //echo $result;die;
+                    //close connection
+                    curl_close($ch);
+
+                    if(isset($output->status))
+                    {
+                        if($output->status == "true")
+                        {
+                            $reponse = array(
+                                'status' => "true",
+                                'message' => "PRDNCN Success Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                        else
+                        {
+                            $reponse = array(
+                                'status' => "false",
+                                'message' => "PRDNCN Failed Acknowledge Acc Flag to B2b."
+                            );
+                        }
+                    }
+                    else
+                    {
+                        $reponse = array(
+                            'status' => "false",
+                            'message' => "PRDNCN No response from b2b acknowledge update acc flag"
+                        );
+                        echo json_encode($reponse);
+                        die;
+                    }
+                } 
+                
+                //print_r($data_array); die;
+                if($update_status > 0)
+                {
+                    $reponse = array(
+                        'status' => "true",
+                        'message' => "PRDNCN Success Update"
+                    );
+                }
+                else
+                {
+                    $reponse = array(
+                        'status' => "false",
+                        'message' => "PRDNCN Failed to Update"
+                    );
+                }
+
+                echo json_encode($reponse);
+                die;
+
+            }
+            else
+            {
+                $reponse = array(
+                    'status' => "false",
+                    'message' => "PRDNCN Got response but Empty Data"
+                );
+                echo json_encode($reponse);
+                die;
+            }
+        }
+        else
+        {
+            $reponse = array(
+                'status' => "false",
+                'message' => "No response from b2b"
+            );
+            echo json_encode($reponse);
+            die;
+        } 
+    }
 }
