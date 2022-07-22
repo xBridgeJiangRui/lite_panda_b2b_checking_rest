@@ -1473,10 +1473,12 @@ class Upload_data extends REST_Controller{
             unpostby,
             unpostdatetime,
             action_date,
-	    uploaded_image,
-	    status,
-	    remark,
-	    cancel_reason
+            uploaded_image,
+            status,
+            remark,
+            cancel_reason,
+            cross_ref,
+            cross_ref_module
             FROM backend.dbnote_batch 
             WHERE dbnote_guid = '$row->dbnote_guid'");
 
