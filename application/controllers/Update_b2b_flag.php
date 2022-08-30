@@ -41,7 +41,7 @@ class Update_b2b_flag extends REST_controller
                 if ($vendor_code_b2b_status->row('b2b_registration') != '1') {
                     // update supcus b2b_registration flag to 1
                     $this->db->query("UPDATE backend.supcus AS a
-                    SET a.`b2b_registration` ='1'
+                    SET a.`b2b_registration` ='1', a.LastStamp = NOW()
                     WHERE a.`b2b_registration`='0' AND a.`Code` = '$value'");
 
                     if ($insert_sql_query == '1') {
@@ -58,7 +58,7 @@ class Update_b2b_flag extends REST_controller
                         // $this->db->insert('sqlserver.sqlscript', $data);
                         $this->db->query("INSERT INTO sqlserver.sqlscript
                         SELECT REPLACE(UPPER(UUID()),'-','') AS refno, 
-                        CONCAT('UPDATE backend.supcus SET b2b_registration = 1 WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
+                        CONCAT('UPDATE backend.supcus SET b2b_registration = 1, LastStamp = NOW() WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
                         NOW() AS CreatedDateTime,
                         'bot_b2b' AS CreatedBy,
                         0 AS STATUS,
@@ -94,7 +94,7 @@ class Update_b2b_flag extends REST_controller
                 if ($vendor_code_b2b_status->row('b2b_registration') != '0') {
                     // update supcus b2b_registration flag to 0
                     $this->db->query("UPDATE backend.supcus AS a
-                    SET a.`b2b_registration` ='0'
+                    SET a.`b2b_registration` ='0', a.LastStamp = NOW()
                     WHERE a.`b2b_registration`='1' AND a.`Code` = '$value'");
 
                     if ($insert_sql_query == '1') {
@@ -113,7 +113,7 @@ class Update_b2b_flag extends REST_controller
 
                         $this->db->query("INSERT INTO sqlserver.sqlscript
                         SELECT REPLACE(UPPER(UUID()),'-','') AS refno, 
-                        CONCAT('UPDATE backend.supcus SET b2b_registration = 0 WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
+                        CONCAT('UPDATE backend.supcus SET b2b_registration = 0, LastStamp = NOW() WHERE supcus_guid=\'',supcus_guid,'\'') AS SqlScript,
                         NOW() AS CreatedDateTime,
                         'bot_b2b' AS CreatedBy,
                         0 AS STATUS,
