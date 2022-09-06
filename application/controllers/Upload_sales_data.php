@@ -361,6 +361,7 @@ class Upload_sales_data extends REST_Controller{
         echo json_encode($response);die;
     }
 
+    // by date trans
     public function everrise_sku_cs_date_get()
     {
         ini_set('memory_limit', '-1');
