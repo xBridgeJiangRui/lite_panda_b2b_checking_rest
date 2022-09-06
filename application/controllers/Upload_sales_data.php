@@ -466,7 +466,7 @@ class Upload_sales_data extends REST_Controller{
 
                 //$url = 'http://127.0.0.1/PANDA_GITHUB/rest_b2b/index.php/Get_sales/sku_cs_date';
                 // $url = 'http://127.0.0.1/rest_b2b/index.php/Get_sales/sku_cs_date';
-                $url = $this->b2b_ip.'/rest_b2b/index.php/Get_sales/sku_cs_date_everrise';
+                $url = $this->b2b_ip.'/rest_b2b/index.php/Get_sales/sku_cs_date_by_datetrans';
 		        // edited by jr sku_cs_date - 26/04/2022
                 $ch = curl_init($url);
                 // echo $url;die;
