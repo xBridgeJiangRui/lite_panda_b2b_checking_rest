@@ -163,7 +163,7 @@ class Scrape_pending_document_upload extends REST_controller
         FROM backend.grmain a 
         INNER JOIN backend.`grmain_dncn` b 
         ON a.`RefNo` = b.`RefNo` 
-        WHERE a.`uploaded` = 2 
+        WHERE a.`uploaded` IN ('1','2')
         AND b.export_account NOT IN ('OK', 'ok', 'Ok') 
         AND b.`uploaded` = '$uploaded_status'
         AND billstatus = 1 

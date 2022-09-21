@@ -783,7 +783,9 @@ class Upload_data extends REST_Controller{
             RoundAdjNeed,
             stock_collected AS stock_collected,
             date_collected AS date_collected,
-            stock_collected_by as stock_collected_by
+            stock_collected_by as stock_collected_by,
+            CONVERTED_FROM_MODULE,
+            CONVERTED_FROM_GUID
             FROM backend.dbnotemain
             WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
 
