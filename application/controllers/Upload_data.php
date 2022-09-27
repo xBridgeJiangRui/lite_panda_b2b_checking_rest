@@ -572,7 +572,7 @@ class Upload_data extends REST_Controller{
         DATE_FORMAT(a.sup_cn_date, '%Y-%m-%d') AS sup_cn_date,
         DATE_FORMAT(a.dncn_date, '%Y-%m-%d') AS dncn_date,
         DATE_FORMAT(a.dncn_date_acc, '%Y-%m-%d') AS dncn_date_acc,
-	a.trans_seq
+	    a.trans_seq
         FROM backend.`grmain_dncn` a 
         INNER JOIN backend.grmain b ON a.RefNo = b.RefNo
         WHERE LEFT(a.Created_at,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
