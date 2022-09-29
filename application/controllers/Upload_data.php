@@ -1628,7 +1628,8 @@ class Upload_data extends REST_Controller{
         PromoRebateAsTaxInv,        
         PurchaseDNAmtAsTaxInv,      
         member_accno,               
-        RoundingAdjust         
+        RoundingAdjust,
+        b2b_registration         
         FROM backend.supcus
         WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)");
         
