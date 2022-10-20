@@ -122,6 +122,25 @@ class Get_outlet_data_to_hq extends REST_controller
                 $status = 'true';
                 $message = 'Success scap outlet data to HQ';
             }
+        }else if ($type == 'POMAIN') {
+            $data = array(
+                'refno' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
+                'SqlScript' => "INSERT INTO `sqlhq`.`sqlscript` ( `refno`, `SqlScript`, `CreatedDateTime`, `CreatedBy`, `Status` ) SELECT REPLACE( UPPER( UUID() ), '-', '' ) AS refno, CONCAT( \" INSERT INTO `b2b_hub`.`pomain_checking` (`location`,`refno`,`scode`,`sname`,`podate`,`duedate`,`issuestamp`,`laststamp`,`expiry_date`,`billstatus`,`ibt`,`completed`,`hq_update`,`rejected`,`cancel`,`postdatetime`,`uploaded`) SELECT '\",location,\"', '\",refno,\"', '\",scode,\"', '\",sname,\"', '\",podate,\"', '\",duedate,\"', '\",issuestamp,\"', '\",laststamp,\"', '\",expiry_date,\"', '\",billstatus,\"', '\",ibt,\"', '\",completed,\"', '\",hq_update,\"', '\",rejected,\"', '\",cancel,\"', '\",postdatetime,\"', '\",uploaded,\"' \") AS  SqlScript, NOW() AS  CreatedDateTime, 'b2b_system' AS    CreatedBy, 0 AS    STATUS FROM backend.pomain WHERE postdatetime BETWEEN TIMESTAMP(CURDATE() - INTERVAL 3 DAY) AND TIMESTAMP(CURDATE())",
+                'CreatedDateTime' => date("Y-m-d H:i:s"),
+                'CreatedBy' => 'bot_b2b',
+                'Status' => '0',
+                'KeyField' => '',
+            );
+
+	        // before insert delete previous data
+            $this->db->query("DELETE FROM b2b_hub.pomain_checking");
+
+            // insert record for update to all outlet
+            $result =  $this->db->insert('sqlserver.sqlscript', $data);
+            if ($result == '') {
+                $status = 'true';
+                $message = 'Success scap outlet data to HQ';
+            }
         }
 
         $json = array(

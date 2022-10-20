@@ -78,7 +78,7 @@ class Check_compare_einv extends REST_Controller{
         ini_set('max_execution_time', 0);
     }
 
-    public function check_einv_data_hub_post()
+    public function check_einv_data_hub_old_post()
     {
         $table = $_REQUEST['table'];
         $start_date = $_REQUEST['start_date'];
@@ -94,7 +94,7 @@ class Check_compare_einv extends REST_Controller{
             $imported_at_where = "";
         }else{
             $guid_where='';
-            $imported_at_where ="WHERE DATE(a.imported_at) BETWEEN '$start_date' AND '$end_date'";
+            $imported_at_where ="WHERE a.created_at BETWEEN '$start_date' AND '$end_date'";
         }
 
         $query_einv = $this->db->query("SELECT a.* FROM b2b_hub.einv_main a 
@@ -108,5 +108,49 @@ class Check_compare_einv extends REST_Controller{
 
         echo json_encode($response);die;
 
+    }
+
+    public function check_einv_data_hub_post()
+    {
+        $table = $_REQUEST['table'];
+        $start_date = $_REQUEST['start_date'];
+        $end_date = $_REQUEST['end_date'];
+	    $guid = $this->input->post('guid');
+        $column_data = $_REQUEST['column_data'];
+ 	    $select_add = '';
+	    $condition_groupby = '';
+        //print_r($guid); die;
+
+        if ($guid !='') {
+            $guid_where = "WHERE a.$column_data IN ($guid)";
+            $imported_at_where = "";
+        }else{
+            $guid_where='';
+            $imported_at_where ="WHERE a.imported_at BETWEEN '$start_date' AND '$end_date'";
+        }
+
+        if($table == 'einv_child')
+        {
+            $select_add = "ROUND(SUM(a.total_amt_incl_tax),2) AS total_amount,";
+        $condition_groupby = "GROUP BY a.einv_guid";
+        }
+
+        if($table == 'ecn_child')
+        {
+            $select_add = "ROUND(SUM(a.total_gross),2) AS sum_total_gross,";
+        $condition_groupby = "GROUP BY a.ecn_guid";
+        }
+
+        $query_einv = $this->db->query("SELECT $select_add a.* FROM b2b_hub.$table a 
+        $guid_where
+        $imported_at_where
+	    $condition_groupby ")->result_array();
+	    //echo $this->db->last_query();die;
+        $response = array(
+            'status' => "true",
+            'result' => $query_einv
+        );
+
+        echo json_encode($response);die;
     }
 }
