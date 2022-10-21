@@ -126,19 +126,25 @@ class Check_compare_einv extends REST_Controller{
             $imported_at_where = "";
         }else{
             $guid_where='';
-            $imported_at_where ="WHERE a.imported_at BETWEEN '$start_date' AND '$end_date'";
+            $imported_at_where ="WHERE a.created_at BETWEEN '$start_date' AND '$end_date'";
         }
 
         if($table == 'einv_child')
         {
             $select_add = "ROUND(SUM(a.total_amt_incl_tax),2) AS total_amount,";
-        $condition_groupby = "GROUP BY a.einv_guid";
+            $condition_groupby = "GROUP BY a.einv_guid";
         }
 
         if($table == 'ecn_child')
         {
             $select_add = "ROUND(SUM(a.total_gross),2) AS sum_total_gross,";
-        $condition_groupby = "GROUP BY a.ecn_guid";
+            $condition_groupby = "GROUP BY a.ecn_guid";
+        }
+
+        if($table == 'consignment_e_invoices')
+        {
+            $select_add = "ROUND(SUM(a.total_inc_tax),2) AS sum_of_total,";
+            $condition_groupby = "GROUP BY a.supcus_code,a.date_trans";
         }
 
         $query_einv = $this->db->query("SELECT $select_add a.* FROM b2b_hub.$table a 
