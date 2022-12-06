@@ -387,7 +387,7 @@ class File_checking extends REST_Controller{
             $dir    = 'e:/file/';
             $files1 = scandir($dir);
             $files2 = scandir($dir,1);
-// die;
+        // die;
 
             foreach($files2 as $row)
             {
@@ -488,12 +488,13 @@ class File_checking extends REST_Controller{
             $output =  json_decode($result);
             $status = $output->message;
 
-            foreach($data->result() as $row)
-            {
-                $this->db->query("UPDATE b2b_doc.other_doc SET hq_update = 1,uploaded = 1,uploaded_at = NOW() WHERE refno = '$row->refno' AND doctype = '$row->doctype'");
-            }
             if($status == "true")
             {
+                foreach($data->result() as $row)
+                {
+                    $this->db->query("UPDATE b2b_doc.other_doc SET hq_update = 1,uploaded = 1,uploaded_at = NOW() WHERE refno = '$row->refno' AND doctype = '$row->doctype'");
+                }
+                
                     $this->response(
                     [
                         'status' => TRUE,
