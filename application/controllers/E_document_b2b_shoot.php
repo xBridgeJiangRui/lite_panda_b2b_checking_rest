@@ -142,6 +142,7 @@ class E_document_b2b_shoot extends REST_Controller{
                     $table2 = 'einv_main';
                     $einv_guid = $row->einv_guid;
                     $trans_guid = $row->trans_guid;
+                    $grmain_refno = $row->refno;
 
                     $check_before_insert = $this->db->query("SELECT * FROM $database2.$table2 WHERE einv_guid = '$einv_guid'");
 
@@ -152,6 +153,19 @@ class E_document_b2b_shoot extends REST_Controller{
                         $success_array['customer_guid'] = $customer_guid;
                         $success_array['refno'] = $trans_guid;
                         $success_array['status'] = 'success';
+                        $success_array_json[] = $success_array;
+                        continue;
+                    }
+
+                    $check_backend_table = $this->db->query("SELECT * FROM backend.grmain WHERE refno = '$grmain_refno' AND b2b_sup_doc_no = '' ");
+
+                    if($check_backend_table->num_rows() > 0)
+                    {
+                        $this->db->query("INSERT INTO $database2.error_log(trans_guid,module,refno,message,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'einv_main','$einv_guid','b2b sup doc no empty','HQ_grab',NOW())");
+                        $success_array['type'] = 'einv_main';
+                        $success_array['customer_guid'] = $customer_guid; 
+                        $success_array['refno'] = $trans_guid;
+                        $success_array['status'] = 'fail';
                         $success_array_json[] = $success_array;
                         continue;
                     }
@@ -360,6 +374,7 @@ class E_document_b2b_shoot extends REST_Controller{
                     $einv_guid = $row->einv_guid;
                     $trans_guid = $row->trans_guid;
                     $child_guid = $row->child_guid;
+                    $grmain_refno = $row->refno;
 
                     $check_before_insert = $this->db->query("SELECT * FROM $database2.$table2 WHERE child_guid = '$child_guid'");
 
@@ -370,6 +385,19 @@ class E_document_b2b_shoot extends REST_Controller{
                         $success_array['customer_guid'] = $customer_guid;
                         $success_array['refno'] = $trans_guid;
                         $success_array['status'] = 'success';
+                        $success_array_json[] = $success_array;
+                        continue;
+                    }
+                    
+                    $check_backend_table = $this->db->query("SELECT * FROM backend.grmain WHERE refno = '$grmain_refno' AND b2b_sup_doc_no = '' ");
+
+                    if($check_backend_table->num_rows() > 0)
+                    {
+                        $this->db->query("INSERT INTO $database2.error_log(trans_guid,module,refno,message,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'einv_child','$child_guid','b2b sup doc no empty','HQ_grab',NOW())");
+                        $success_array['type'] = 'einv_main';
+                        $success_array['customer_guid'] = $customer_guid; 
+                        $success_array['refno'] = $trans_guid;
+                        $success_array['status'] = 'fail';
                         $success_array_json[] = $success_array;
                         continue;
                     }
@@ -584,6 +612,7 @@ class E_document_b2b_shoot extends REST_Controller{
                     $table2 = 'ecn_main';
                     $ecn_guid = $row->ecn_guid;
                     $trans_guid = $row->trans_guid;
+                    $grda_refno = $row->refno;
 
                     $check_before_insert = $this->db->query("SELECT * FROM $database2.$table2 WHERE ecn_guid = '$ecn_guid'");
                     // echo json_encode($check_before_insert->result());die;
@@ -595,6 +624,19 @@ class E_document_b2b_shoot extends REST_Controller{
                         $success_array['customer_guid'] = $customer_guid;
                         $success_array['refno'] = $trans_guid;
                         $success_array['status'] = 'success';
+                        $success_array_json[] = $success_array;
+                        continue;
+                    }
+
+                    $check_backend_table = $this->db->query("SELECT * FROM backend.grmain_dncn WHERE refno = '$grda_refno' AND ext_doc_no = '' ");
+
+                    if($check_backend_table->num_rows() > 0)
+                    {
+                        $this->db->query("INSERT INTO $database2.error_log(trans_guid,module,refno,message,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'ecn_main','$ecn_guid','ext doc no empty','HQ_grab',NOW())");
+                        $success_array['type'] = 'ecn_main';
+                        $success_array['customer_guid'] = $customer_guid;
+                        $success_array['refno'] = $trans_guid;
+                        $success_array['status'] = 'fail';
                         $success_array_json[] = $success_array;
                         continue;
                     }
@@ -802,6 +844,7 @@ class E_document_b2b_shoot extends REST_Controller{
                     $ecn_guid = $row->ecn_guid;
                     $trans_guid = $row->trans_guid;
                     $child_guid = $row->child_guid;
+                    $grda_refno = $row->refno;
 
                     $check_before_insert = $this->db->query("SELECT * FROM $database2.$table2 WHERE child_guid = '$child_guid'");
 
@@ -812,6 +855,19 @@ class E_document_b2b_shoot extends REST_Controller{
                         $success_array['customer_guid'] = $customer_guid;
                         $success_array['refno'] = $trans_guid;
                         $success_array['status'] = 'success';
+                        $success_array_json[] = $success_array;
+                        continue;
+                    }
+
+                    $check_backend_table = $this->db->query("SELECT * FROM backend.grmain_dncn WHERE refno = '$grda_refno' AND ext_doc_no = '' ");
+
+                    if($check_backend_table->num_rows() > 0)
+                    {
+                        $this->db->query("INSERT INTO $database2.error_log(trans_guid,module,refno,message,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'ecn_child','$child_guid','ext doc no empty','HQ_grab',NOW())");
+                        $success_array['type'] = 'ecn_child';
+                        $success_array['customer_guid'] = $customer_guid;
+                        $success_array['refno'] = $trans_guid;
+                        $success_array['status'] = 'fail';
                         $success_array_json[] = $success_array;
                         continue;
                     }
