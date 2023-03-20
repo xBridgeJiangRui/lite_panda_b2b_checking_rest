@@ -512,7 +512,7 @@ class Api extends REST_Controller{
                         {
                             $this->db->query("UPDATE backend.pomain SET uploaded = 3 , uploaded_at = '$date' WHERE RefNo = '$row2->PORefNo'");
 
-                            $this->db->query("INSERT INTO b2b_hub.error_log(trans_guid,module,refno,`message`,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'gr_completed_module','$row2->PORefNo','Success to flag status to B2B','HQ_grab',NOW())");
+                            //$this->db->query("INSERT INTO b2b_hub.error_log(trans_guid,module,refno,`message`,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'gr_completed_module','$row2->PORefNo','Success to flag status to B2B','HQ_grab',NOW())");
                         }
                         else
                         {
