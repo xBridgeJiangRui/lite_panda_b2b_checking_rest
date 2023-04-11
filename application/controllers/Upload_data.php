@@ -408,7 +408,7 @@ class Upload_data extends REST_Controller{
         AND a.uploaded = '1'
 	    AND IF(b.refno IS NOT NULL , b.uploaded = '2',b.refno IS NULL)
         AND a.EXPORT_ACCOUNT NOT IN ('OK','ok','Ok') 
-        LIMIT 100");
+        LIMIT 0");
 
         // print_r($data->num_rows());die;
 
@@ -577,7 +577,7 @@ class Upload_data extends REST_Controller{
         INNER JOIN backend.grmain b ON a.RefNo = b.RefNo
         WHERE LEFT(a.Created_at,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND a.uploaded = '1' 
-        LIMIT 100");
+        LIMIT 0");
 
         // print_r($data->num_rows());die;
 
@@ -719,7 +719,7 @@ class Upload_data extends REST_Controller{
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND billstatus = '1'
         AND uploaded = '1'
-        LIMIT 100");
+        LIMIT 0");
 
         //print_r($data->num_rows());die;
 
@@ -888,7 +888,7 @@ class Upload_data extends REST_Controller{
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND billstatus = '1'
         and uploaded = '1' 
-        LIMIT 100");
+        LIMIT 0");
 
         //print_r($data->num_rows());die;
 
@@ -1045,7 +1045,7 @@ class Upload_data extends REST_Controller{
         AND posted = '1'
         AND trans_type IN ('PCNAMT' , 'PDNAMT') 
         and uploaded = '1' 
-        LIMIT 100");
+        LIMIT 0");
 
         //print_r($data->num_rows());die;
 
@@ -1189,7 +1189,7 @@ class Upload_data extends REST_Controller{
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND posted = '1'  
         AND uploaded = '1'  
-        LIMIT 100");
+        LIMIT 0");
 
         //print_r($data->num_rows());die;
 
@@ -1328,7 +1328,7 @@ class Upload_data extends REST_Controller{
         WHERE docdate >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
         AND posted = '1'  
         AND uploaded = '1'   
-        LIMIT 100");
+        LIMIT 0");
 
         //print_r($data->num_rows());die;
 
@@ -1444,7 +1444,7 @@ class Upload_data extends REST_Controller{
             posted_at as posted_at
             FROM backend.dbnote_batch 
             WHERE hq_update = 0   
-            LIMIT 100");
+            LIMIT 0");
 
         // print_r($data->result());die;
 
@@ -1631,49 +1631,61 @@ class Upload_data extends REST_Controller{
         RoundingAdjust,
         b2b_registration         
         FROM backend.supcus
-        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)");
-        
-        //print_r($data->num_rows());die;
+        WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 1 DAY)");
 
-        $username = 'admin'; //get from rest.php
-        $password = '1234'; //get from rest.php
+        if($data->num_rows() > 0)
+	{
 
-        //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/supcus2';
-        $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/supcus2';
-        $ch = curl_init($url);
+		$username = 'admin'; //get from rest.php
+		$password = '1234'; //get from rest.php
 
-        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
-        curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data->result()));
+		//$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/supcus2';
+		$url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/supcus3';
+		//echo $url; die;
+		$ch = curl_init($url);
 
-        $result = curl_exec($ch);
-        //echo $result;die;
-        $output =  json_decode($result);
-        $status = $output->message;
-        if($status == "true")
-        {
-                $this->response(
-                [
-                    'status' => TRUE,
-                    'message' => 'Success'
-                ]
-                // $this->Main_model->query_call('Api','login_validation_get', $data)
-            );  
-        }
-        else
-        {
-                $this->response(
-                [
-                    'status' => FALSE,
-                    'message' => 'Unsuccess'
-                ]
-                // $this->Main_model->query_call('Api','login_validation_get', $data)
-            );  
-        }
+		curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+		curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data->result()));
+
+		$result = curl_exec($ch);
+		echo $result;die;
+		$output =  json_decode($result);
+		$status = $output->message;
+		if($status == "true")
+		{
+		        $this->response(
+		        [
+		            'status' => TRUE,
+		            'message' => 'Success'
+		        ]
+		        // $this->Main_model->query_call('Api','login_validation_get', $data)
+		    );  
+		}
+		else
+		{
+		        $this->response(
+		        [
+		            'status' => FALSE,
+		            'message' => 'Unsuccess'
+		        ]
+		        // $this->Main_model->query_call('Api','login_validation_get', $data)
+		    );  
+		}
+	}
+	else
+	{
+		$this->response(
+		[
+		   'status' => TRUE,
+		   'message' => 'No Data'
+		]
+		);
+	}
     }
       
     public function cp_set_branch_get()
@@ -1758,16 +1770,15 @@ class Upload_data extends REST_Controller{
     {
         $data = $this->db->query("SELECT
         (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
-        -- '403810171FA711EA9BB8E4E7491C3E1E' AS customer_guid,
         RefNo,
-        hq_update
+        uploaded
         FROM backend.`pomain` AS a
         INNER JOIN backend.supcus AS b
         ON a.`SCode` = b.`Code`
         WHERE podate >= DATE_FORMAT((SELECT date_start FROM rest_api.`run_once_config` LIMIT 1),'%Y-%m-%d')
         AND billstatus = '1' 
         AND completed = '1'
-        AND hq_update < '3' 
+        AND uploaded IN ('1') 
         and expiry_date > curdate() LIMIT 0");
 
         print_r($data->num_rows());die;
@@ -1778,7 +1789,7 @@ class Upload_data extends REST_Controller{
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             RefNo,
-            hq_update
+            uploaded
             FROM backend.`pomain` AS a
             INNER JOIN backend.supcus AS b
             ON a.`SCode` = b.`Code`
@@ -1805,11 +1816,11 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.pomain set hq_update = '3' WHERE RefNo = '$row->RefNo'"); 
+                    $run = $this->db->query("UPDATE backend.pomain set uploaded = '2' WHERE RefNo = '$row->RefNo'"); 
             }
             else
             {
-                    // $run = $this->db->query("UPDATE backend.pomain set hq_update = '3' WHERE RefNo = '$row->RefNo'");
+                    // $run = $this->db->query("UPDATE backend.pomain set uploaded = '2' WHERE RefNo = '$row->RefNo'");
             }
         }//close foreach
 

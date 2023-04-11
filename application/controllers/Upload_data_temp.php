@@ -16,6 +16,11 @@ class Upload_data_temp extends REST_Controller{
         // $this->b2b_ip = 'http://127.0.0.1';
     } 
 
+    public function test_api_get()
+    {
+	echo '123'; die;
+    }
+
     public function purchase_order_get()
     {
 	ini_set('max_execution_time', 0); 

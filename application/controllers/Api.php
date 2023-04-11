@@ -343,11 +343,11 @@ class Api extends REST_Controller{
             AND completed IN('1','2')
             -- AND hq_update = '3'
             -- AND a.uploaded = 2 
-            AND a.uploaded = '2'
+            AND a.uploaded IN ('1')
             AND a.send != '2'
             ORDER BY podate DESC LIMIT 300");
 
-//echo $refno->num_rows();die;
+	//echo $refno->num_rows();die;
 
         if($refno->num_rows() > 0)
         {
@@ -401,7 +401,7 @@ class Api extends REST_Controller{
 
                         if($output->status == 'success')
                         {
-                            $this->db->query("UPDATE backend.pomain SET uploaded = 3 , uploaded_at = '$date' WHERE RefNo = '$row2->PORefNo'");
+                            $this->db->query("UPDATE backend.pomain SET uploaded = 2 , uploaded_at = '$date' WHERE RefNo = '$row2->PORefNo'");
                         }
                         else
                         {
