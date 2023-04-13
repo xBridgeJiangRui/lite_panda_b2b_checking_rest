@@ -27,7 +27,6 @@ class Update_b2b_flag extends REST_controller
         $message = '';
         // convert string to array
         $vendor_code = explode(',', $vendor_code);
-	//print_r($vendor_code); die;
 
         if ($type == 'create') {
 

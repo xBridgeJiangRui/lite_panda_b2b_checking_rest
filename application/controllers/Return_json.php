@@ -167,7 +167,7 @@ class Return_json extends REST_Controller {
                 , description
                 , packsize
                 , lastcost
-		, input_cost
+		        , input_cost
                 , averagecost
                 , sellingprice
                 , qty

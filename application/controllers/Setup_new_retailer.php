@@ -150,7 +150,7 @@ class Setup_new_retailer extends REST_controller
             $data[] = array(
                 'guid' => $this->db->query("SELECT UPPER(REPLACE(UUID(),'-','')) as guid")->row('guid'),
                 'code' => 'IP',
-                'value' => '',
+                'value' => 'api.xbridge.my',
                 'isactive' => '1',
                 'created_by' => 'b2b_system',
                 'created_at' => date("Y-m-d H:i:s"),
@@ -204,8 +204,6 @@ class Setup_new_retailer extends REST_controller
         //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/cp_set_branch2';
         $url = $prefix_url . '/rest_api/index.php/panda_b2b/cp_set_branch2';
         // $url = '';
-
-	//print_r($url); die;
         $ch = curl_init($url);
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);

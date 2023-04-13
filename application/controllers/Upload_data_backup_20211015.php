@@ -182,7 +182,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
              //echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             IF(closed = '1', 'Closed', IF(cancel ='1', 'Cancelled',  '')) AS STATUS,
@@ -296,7 +295,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.pomain SET uploaded = '2' , uploaded_at = '$date' WHERE RefNo = '$row->RefNo'"); 
+                    $run = $this->db->query("UPDATE backend.pomain SET uploaded = '2' WHERE RefNo = '$row->RefNo'"); 
             }
             else
             {
@@ -318,96 +317,93 @@ class Upload_data extends REST_Controller{
         $data = $this->db->query("SELECT
         (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
         '' AS STATUS,
-        a.RefNo,
-        a.Location,
-        a.DONo AS DONo,
-        a.InvNo AS InvNo,
-        DATE_FORMAT(a.DocDate, '%Y-%m-%d') AS DocDate,
-        DATE_FORMAT(a.GRDate, '%Y-%m-%d') AS GRDate,
-        DATE_FORMAT(a.IssueStamp, '%Y-%m-%d %H:%i:%s') AS IssueStamp,
-        DATE_FORMAT(a.LastStamp, '%Y-%m-%d %H:%i:%s') AS LastStamp,
-        a.`Code`,
-        a.NAME AS `Name`,
-        a.Term,
-        a.Receivedby AS Receivedby,
-        a.Remark AS Remark,
-        a.BillStatus,
-        a.AccStatus,
-        DATE_FORMAT(a.DueDate, '%Y-%m-%d') AS DueDate,
-        a.Total,
-        a.Closed,
-        a.Subtotal1,
-        a.Discount1,
-        a.Discount1Type,
-        a.Subtotal2,
-        a.Discount2,
-        a.Discount2Type,
-        a.Disc1Percent,
-        a.Disc2Percent,
-        a.Cancelled,
-        a.DOState,
-        a.InvState,
-        a.InvRefno,
-        a.subdept,
-        a.CalcCost,
-        a.SubDeptCode,
-        a.consign,
-        a.postby,
-        DATE_FORMAT(a.postdatetime, '%Y-%m-%d %H:%i:%s') AS postdatetime,
-        a.unpostby,
-        DATE_FORMAT(a.unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
-        a.CalDueDateby,
-        a.hq_update,
-        a.EXPORT_ACCOUNT,
-        DATE_FORMAT(a.EXPORT_AT, '%Y-%m-%d %H:%i:%s') AS EXPORT_AT,
-        a.EXPORT_BY,
-        a.InvAmount_Vendor,
-        a.InvSurchargeDisc_Vendor,
-        a.InvNetAmt_Vendor,
-        a.loc_group,
-        a.pay_by_invoice,
-        a.rebate_amt,
-        a.ibt,
-        a.dn_amt,
-        a.m_trans_type,
-        a.in_kind,
-        a.rebate,
-        a.gst_tax_sum,
-        a.tax_code_purchase,
-        a.gst_tax_rate,
-        a.gst_tax_sum_inv,
-        a.InvSurcharge,
-        a.price_include_tax,
-        a.surchg_tax_sum,
-        a.surchg_tax_sum_inv,
-        a.total_include_tax,
-        a.doc_name_reg AS doc_name_reg,
-        a.multi_tax_code,
-        a.refno2 AS refno2,
-        a.gst_adj,
-        a.rounding_adj,
-        a.discount_as_inv,
-        a.rebate_as_inv,
-        a.ibt_gst,
-        DATE_FORMAT(a.acc_post_date, '%Y-%m-%d') AS acc_post_date,
-        a.uploaded,
-        DATE_FORMAT(a.uploaded_at, '%Y-%m-%d %H:%i:%s') AS uploaded_at,
-        a.input_amt_exc_tax,
-        a.input_gst,
-        a.input_amt_inc_tax,
-        a.amt_matched,
-        a.ibt_qty_actual,
-        a.ibt_qty_grda,
-        a.cross_ref,
-        a.cross_ref_module
-        FROM backend.`grmain` a
-	    LEFT JOIN backend.grmain_dncn b
-        ON a.refno = b.refno
-        WHERE LEFT(a.grdate,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH) 
-        AND a.billstatus = '1'
-        AND a.uploaded = '1'
-	    AND IF(b.refno IS NOT NULL , b.uploaded = '2',b.refno IS NULL)
-        AND a.EXPORT_ACCOUNT NOT IN ('OK','ok','Ok') 
+        RefNo,
+        Location,
+        DONo AS DONo,
+        InvNo AS InvNo,
+        DATE_FORMAT(DocDate, '%Y-%m-%d') AS DocDate,
+        DATE_FORMAT(GRDate, '%Y-%m-%d') AS GRDate,
+        DATE_FORMAT(IssueStamp, '%Y-%m-%d %H:%i:%s') AS IssueStamp,
+        DATE_FORMAT(LastStamp, '%Y-%m-%d %H:%i:%s') AS LastStamp,
+        `Code`,
+        NAME AS `Name`,
+        Term,
+        Receivedby AS Receivedby,
+        Remark AS Remark,
+        BillStatus,
+        AccStatus,
+        DATE_FORMAT(DueDate, '%Y-%m-%d') AS DueDate,
+        Total,
+        Closed,
+        Subtotal1,
+        Discount1,
+        Discount1Type,
+        Subtotal2,
+        Discount2,
+        Discount2Type,
+        Disc1Percent,
+        Disc2Percent,
+        Cancelled,
+        DOState,
+        InvState,
+        InvRefno,
+        subdept,
+        CalcCost,
+        SubDeptCode,
+        consign,
+        postby,
+        DATE_FORMAT(postdatetime, '%Y-%m-%d %H:%i:%s') AS postdatetime,
+        unpostby,
+        DATE_FORMAT(unpostdatetime, '%Y-%m-%d %H:%i:%s') AS unpostdatetime,
+        CalDueDateby,
+        hq_update,
+        EXPORT_ACCOUNT,
+        DATE_FORMAT(EXPORT_AT, '%Y-%m-%d %H:%i:%s') AS EXPORT_AT,
+        EXPORT_BY,
+        InvAmount_Vendor,
+        InvSurchargeDisc_Vendor,
+        InvNetAmt_Vendor,
+        loc_group,
+        pay_by_invoice,
+        rebate_amt,
+        ibt,
+        dn_amt,
+        m_trans_type,
+        in_kind,
+        rebate,
+        gst_tax_sum,
+        tax_code_purchase,
+        gst_tax_rate,
+        gst_tax_sum_inv,
+        InvSurcharge,
+        price_include_tax,
+        surchg_tax_sum,
+        surchg_tax_sum_inv,
+        total_include_tax,
+        doc_name_reg AS doc_name_reg,
+        multi_tax_code,
+        refno2 AS refno2,
+        gst_adj,
+        rounding_adj,
+        discount_as_inv,
+        rebate_as_inv,
+        ibt_gst,
+        DATE_FORMAT(acc_post_date, '%Y-%m-%d') AS acc_post_date,
+        uploaded,
+        DATE_FORMAT(uploaded_at, '%Y-%m-%d %H:%i:%s') AS uploaded_at,
+        input_amt_exc_tax,
+        input_gst,
+        input_amt_inc_tax,
+        amt_matched,
+        ibt_qty_actual,
+        ibt_qty_grda,
+        cross_ref,
+        cross_ref_module
+        FROM backend.`grmain`
+        WHERE LEFT(grdate,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH) 
+        AND billstatus = '1'
+        AND uploaded = '1'
+        AND EXPORT_ACCOUNT NOT IN ('OK','ok','Ok') 
         LIMIT 100");
 
         // print_r($data->num_rows());die;
@@ -415,7 +411,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             '' AS STATUS,
@@ -525,7 +520,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                $run = $this->db->query("UPDATE backend.grmain SET uploaded = '2' , uploaded_at = '$date' WHERE RefNo = '$row->RefNo'"); 
+                    $run = $this->db->query("UPDATE backend.grmain SET uploaded = '2' WHERE RefNo = '$row->RefNo'"); 
             }
             else
             {
@@ -571,8 +566,7 @@ class Upload_data extends REST_Controller{
         a.sup_cn_no AS sup_cn_no,
         DATE_FORMAT(a.sup_cn_date, '%Y-%m-%d') AS sup_cn_date,
         DATE_FORMAT(a.dncn_date, '%Y-%m-%d') AS dncn_date,
-        DATE_FORMAT(a.dncn_date_acc, '%Y-%m-%d') AS dncn_date_acc,
-	    a.trans_seq
+        DATE_FORMAT(a.dncn_date_acc, '%Y-%m-%d') AS dncn_date_acc
         FROM backend.`grmain_dncn` a 
         INNER JOIN backend.grmain b ON a.RefNo = b.RefNo
         WHERE LEFT(a.Created_at,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH)
@@ -584,7 +578,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             '' AS `status`,
@@ -612,8 +605,7 @@ class Upload_data extends REST_Controller{
             a.sup_cn_no AS sup_cn_no,
             DATE_FORMAT(a.sup_cn_date, '%Y-%m-%d') AS sup_cn_date,
             DATE_FORMAT(a.dncn_date, '%Y-%m-%d') AS dncn_date,
-            DATE_FORMAT(a.dncn_date_acc, '%Y-%m-%d') AS dncn_date_acc,
-	    a.trans_seq
+            DATE_FORMAT(a.dncn_date_acc, '%Y-%m-%d') AS dncn_date_acc
             FROM backend.`grmain_dncn` a 
             INNER JOIN backend.grmain b ON a.RefNo = b.RefNo
             WHERE a.RefNo = '$row->RefNo' AND a.transtype = '$row->transtype'");
@@ -639,7 +631,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.grmain_dncn SET uploaded = '2' , uploaded_at = '$date' WHERE RefNo = '$row->RefNo' AND transtype = '$row->transtype'"); 
+                    $run = $this->db->query("UPDATE backend.grmain_dncn SET uploaded = '2' WHERE RefNo = '$row->RefNo' AND transtype = '$row->transtype'"); 
             }
             else
             {
@@ -726,7 +718,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             //echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT 
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             IF(closed = '1', 'Closed',  '') AS STATUS,
@@ -783,9 +774,7 @@ class Upload_data extends REST_Controller{
             RoundAdjNeed,
             stock_collected AS stock_collected,
             date_collected AS date_collected,
-            stock_collected_by as stock_collected_by,
-            CONVERTED_FROM_MODULE,
-            CONVERTED_FROM_GUID
+            stock_collected_by as stock_collected_by
             FROM backend.dbnotemain
             WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'");
 
@@ -808,10 +797,9 @@ class Upload_data extends REST_Controller{
             // echo $result;die;
             $output =  json_decode($result);
             $status = $output->message;
-
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.dbnotemain set uploaded = '2' , uploaded_at = '$date' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'"); 
+                    $run = $this->db->query("UPDATE backend.dbnotemain set uploaded = '2' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'"); 
             }
             else
             {
@@ -895,7 +883,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT 
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             IF(closed = '1', 'Closed',  '') AS STATUS,
@@ -974,7 +961,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.cnnotemain SET uploaded = '2' , uploaded_at = '$date' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'"); 
+                    $run = $this->db->query("UPDATE backend.cnnotemain SET uploaded = '2' WHERE Type = '$row->TYPE' AND RefNo = '$row->RefNo'"); 
             }
             else
             {
@@ -1051,7 +1038,7 @@ class Upload_data extends REST_Controller{
 
         foreach($data->result() as $row)
         {
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
+
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             ''  AS STATUS,
@@ -1123,7 +1110,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.cndn_amt SET uploaded = '2', uploaded_at = '$date' WHERE cndn_guid = '$row->cndn_guid'"); 
+                    $run = $this->db->query("UPDATE backend.cndn_amt SET uploaded = '2' WHERE cndn_guid = '$row->cndn_guid'"); 
             }
             else
             {
@@ -1196,7 +1183,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             ''  AS STATUS,
@@ -1264,7 +1250,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.promo_taxinv SET uploaded = '2' , uploaded_at = '$date' WHERE taxinv_guid = '$row->taxinv_guid'"); 
+                    $run = $this->db->query("UPDATE backend.promo_taxinv SET uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'"); 
             }
             else
             {
@@ -1335,7 +1321,6 @@ class Upload_data extends REST_Controller{
         foreach($data->result() as $row)
         {
             // echo $row->RefNo;die; 
-            $date = $this->db->query("SELECT NOW() as now")->row('now');
             $data2 = $this->db->query("SELECT
             (SELECT customer_guid FROM rest_api.`run_once_config` LIMIT 1) AS customer_guid,
             ''  AS STATUS,
@@ -1401,7 +1386,7 @@ class Upload_data extends REST_Controller{
             $status = $output->message;
             if($status == "true")
             {
-                    $run = $this->db->query("UPDATE backend.discheme_taxinv SET uploaded = '2' , uploaded_at = '$date' WHERE taxinv_guid = '$row->taxinv_guid'"); 
+                    $run = $this->db->query("UPDATE backend.discheme_taxinv SET uploaded = '2' WHERE taxinv_guid = '$row->taxinv_guid'"); 
             }
             else
             {
@@ -1477,13 +1462,7 @@ class Upload_data extends REST_Controller{
             gst_tax_sum,
             unpostby,
             unpostdatetime,
-            action_date,
-            uploaded_image,
-            status,
-            remark,
-            cancel_reason,
-            cross_ref,
-            cross_ref_module
+            action_date
             FROM backend.dbnote_batch 
             WHERE dbnote_guid = '$row->dbnote_guid'");
 
@@ -1503,7 +1482,7 @@ class Upload_data extends REST_Controller{
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data2->result()));
 
             $result = curl_exec($ch);
-            //echo $result;die;
+            // echo $result;die;
             $output =  json_decode($result);
             $status = $output->message;
             // echo $status;die;
@@ -1628,8 +1607,7 @@ class Upload_data extends REST_Controller{
         PromoRebateAsTaxInv,        
         PurchaseDNAmtAsTaxInv,      
         member_accno,               
-        RoundingAdjust,
-        b2b_registration         
+        RoundingAdjust         
         FROM backend.supcus
         WHERE LEFT(laststamp,10) > DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-%d'), INTERVAL - 7 DAY)");
         
@@ -1906,6 +1884,7 @@ class Upload_data extends REST_Controller{
             // $this->Main_model->query_call('Api','login_validation_get', $data)
             );
         }
-    } 
+    }
+     
 }
 
