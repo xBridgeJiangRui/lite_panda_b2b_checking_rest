@@ -346,12 +346,7 @@ class Api extends REST_Controller{
             AND a.uploaded = '2'
             AND a.send != '2'
             ORDER BY podate DESC LIMIT 300");
-
-<<<<<<< HEAD
-=======
-//echo $refno->num_rows();die;
-
->>>>>>> parent of 722590e (Commit)
+            
         if($refno->num_rows() > 0)
         {
             $child_row = 0;
