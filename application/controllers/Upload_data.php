@@ -1443,7 +1443,7 @@ class Upload_data extends REST_Controller{
             posted_by as posted_by,
             posted_at as posted_at
             FROM backend.dbnote_batch 
-            WHERE hq_update = 0   
+            WHERE hq_update = 99   
             LIMIT 100");
 
         // print_r($data->result());die;
@@ -1469,7 +1469,8 @@ class Upload_data extends REST_Controller{
             send_print,
             location,
             sub_location,
-            loc_group,hq_update,
+            loc_group,
+            '0' AS hq_update,
             posted as posted,
             posted_by as posted_by,
             posted_at as posted_at,
