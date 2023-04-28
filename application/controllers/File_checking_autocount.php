@@ -785,5 +785,48 @@ class File_checking_autocount extends REST_Controller{
             ); 
     }   
 
+    public function reflow_doc_mapping_get()
+    {
+        $get_doc = $this->db->query("SELECT a.* FROM b2b_doc.other_doc a LEFT JOIN b2b_doc.other_doc_mapping b ON a.refno = b.cross_refno WHERE a.uploaded = '0' AND a.supname <> '' AND b.cross_refno IS NULL AND DATE(a.created_at) != CURDATE() GROUP BY a.refno ");
+
+        if($get_doc->num_rows() > 0)
+        {
+            foreach($get_doc->result() as $row)
+            {
+                $DocType = $row->doctype;
+                $other_doc_refno = $row->refno;
+                $other_doc_supcode = $row->supcode;
+                $datetime = $this->db->query("SELECT DATE_FORMAT(NOW(),'%d%m%y000000') AS `datetime`")->row('datetime');
+                $FtpFileName = $DocType.'_'.$datetime.'_'.$other_doc_supcode.'_'.$other_doc_refno;
+
+                $insert_data = $this->db->query("REPLACE INTO b2b_doc.other_doc_mapping (doctype,cross_refno,file_refno,cross_supcode,file_supcode,filename,created_at,created_by,updated_at,updated_by) VALUES('$DocType','$other_doc_refno','$other_doc_refno','$other_doc_supcode','$other_doc_supcode','$FtpFileName',NOW(),'reflow_agent','1001-01-01 00:00:00','reflow_agent') ");
+            }
+        }
+        else
+        {
+            $message = 'No Data';
+        }
+
+        $affected_rows = $this->db->affected_rows();
+
+        if($affected_rows > 0)
+        {
+            $this->response(
+                [
+                    'status' => TRUE,
+                    'message' => 'Success'
+                ]
+            ); 
+        }
+        else
+        {
+            $this->response(
+                [
+                    'status' => TRUE,
+                    'message' => $message
+                ]
+            ); 
+        }
+    }
 }
 
