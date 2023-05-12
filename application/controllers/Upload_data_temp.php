@@ -1474,7 +1474,7 @@ class Upload_data_temp extends REST_Controller{
         $refno_in = "'" . $refno_in . "'";
 
         if ($type == 'PO') {
-            $result_main =  $this->db->query("SELECT a.`RefNo`,a.PODate,a.`postdatetime`,a.`BillStatus`,a.`ibt`,a.`in_kind`,a.`unpost`,a.`uploaded`,a.`uploaded_at`,a.`rejected`,a.`rejected_at`,a.`total_include_tax`
+            $result_main =  $this->db->query("SELECT a.`RefNo`,a.PODate,a.`postdatetime`,a.`BillStatus`,a.`ibt`,a.`in_kind`,a.`unpost`,a.`uploaded`,a.`uploaded_at`,a.`rejected`,a.`rejected_at`,a.`total_include_tax`,a.cancel, a.cancel_at
             FROM backend.pomain AS a WHERE a.refno IN($refno_in)")->result();
 
             $result_child =  $this->db->query("SELECT a.`RefNo`,a.`Line`,a.`TotalPrice`
@@ -1504,18 +1504,18 @@ class Upload_data_temp extends REST_Controller{
         } elseif ($type == 'CN_Note') {
             $result_main =  $this->db->query("SELECT a.`RefNo`,a.`DocDate`,a.`BillStatus`,a.`postdatetime`,a.`ibt`,a.`uploaded`,a.`uploaded_at` FROM backend.cnnotemain AS a WHERE a.refno IN($refno_in)")->result();
             $result_child =  $this->db->query("SELECT a.`RefNo`,a.`Line` FROM backend.cnnotechild AS a WHERE a.refno IN($refno_in)")->result();
-            $result_variance_amount = [];
+            $result_variance_amount = $this->db->query("SELECT a.Refno,a.amount,ROUND(SUM(b.totalprice),2) AS child_amount, (a.amount - ROUND(SUM(b.totalprice),2)) AS diff_var FROM backend.cnnotemain a INNER JOIN backend.`cnnotechild` b ON a.`RefNo` = b.`RefNo` WHERE a.refno IN ($refno_in) GROUP BY a.`RefNo`")->result();
         } elseif ($type == 'DN_Note') {
             $result_main =  $this->db->query("SELECT a.`Type`,a.`RefNo`,a.`DocDate`,a.`postdatetime`,a.`ibt`,a.`uploaded`,a.`uploaded_at`,a.`EXPORT_ACCOUNT`,a.`Amount`,a.`unpostby`,a.`unpostdatetime` FROM backend.dbnotemain AS a WHERE a.refno IN($refno_in)")->result();
             $result_child =  $this->db->query("SELECT a.`RefNo`,a.`Line` FROM backend.dbnotechild AS a WHERE a.refno IN($refno_in)")->result();
-            $result_variance_amount = [];
+            $result_variance_amount = $this->db->query("SELECT a.Refno,a.amount,ROUND(SUM(b.totalprice),2) AS child_amount, (a.amount - ROUND(SUM(b.totalprice),2)) AS diff_var FROM backend.dbnotemain a INNER JOIN backend.`dbnotechild` b ON a.`RefNo` = b.`RefNo` WHERE a.refno IN($refno_in) GROUP BY a.`RefNo`")->result();
         } elseif ($type == 'PCNamt') {
             $result_main =  $this->db->query("SELECT a.trans_type,a.refno,a.docdate,a.posted,a.posted_at,a.ibt,a.uploaded,a.uploaded_at FROM backend.cndn_amt AS a WHERE a.refno IN($refno_in)")->result();
-            $result_child = [];
+            $result_child = $this->db->query("SELECT b.cndn_guid,b.seq,b.itemcode,b.description,b.qty,b.amount_c,b.created_at,b.updated_at FROM backend.cndn_amt a INNER JOIN backend.`cndn_amt_c`  b ON a.`cndn_guid` = b.`cndn_guid` WHERE a.refno IN ($refno_in)")->result();
             $result_variance_amount = [];
         } elseif ($type == 'PDNamt') {
             $result_main =  $this->db->query("SELECT a.trans_type,a.refno,a.docdate,a.posted,a.posted_at,a.ibt,a.uploaded,a.uploaded_at FROM backend.cndn_amt AS a WHERE a.refno IN($refno_in)")->result();
-            $result_child = [];
+            $result_child = $this->db->query("SELECT b.cndn_guid,b.seq,b.itemcode,b.description,b.qty,b.amount_c,b.created_at,b.updated_at FROM backend.cndn_amt a INNER JOIN backend.`cndn_amt_c`  b ON a.`cndn_guid` = b.`cndn_guid` WHERE a.refno IN ($refno_in)")->result();
             $result_variance_amount = [];
         } elseif ($type == 'DI') {
             $result_main =  $this->db->query("SELECT a.docdate,a.inv_refno,a.refno,a.posted,a.posted_at,a.uploaded,a.uploaded_at FROM backend.discheme_taxinv AS a WHERE a.inv_refno IN($refno_in)")->result();

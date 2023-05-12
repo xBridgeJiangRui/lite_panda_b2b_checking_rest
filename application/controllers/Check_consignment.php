@@ -24,6 +24,15 @@ class Check_consignment extends REST_controller
         AND a.approval = '1'
         AND a.company_id = ''")->result_array();
 
+        //cks
+        // $result = $this->db->query("SELECT a.* FROM backend.acc_trans a
+        // WHERE a.date_trans >= '$date_trans' 
+        // AND a.trans_type = 'INV-CS'
+        // AND a.approval = '1'
+        // AND a.company_id = ''
+        // AND SUBSTR(a.locgroup,'1','1') != 'F'")->result_array();
+        
+
         $json = array(
             'result' => $result,
         );
