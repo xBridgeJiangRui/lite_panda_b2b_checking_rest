@@ -287,4 +287,29 @@ class Scrape_pending_document_upload extends REST_controller
         );
         $this->response($json);
     }
+
+    public function scrape_variance_get()
+    {
+        // PO variance
+        $po_variance = $this->db->query("SELECT a.RefNo,a.subtotal1, a.t_price AS total_amt_pochild FROM  
+        (SELECT gg.RefNo, gg.scode, ROUND(gg.`SubTotal1`,2) AS subtotal1, aa.t_price FROM backend.pomain AS gg
+        INNER JOIN (
+        SELECT a.Refno, ROUND(SUM(totalprice),2) AS t_price FROM backend.pomain a 
+        INNER JOIN  backend.pochild  b 
+        ON a.`RefNo` = b.`RefNo` 
+        WHERE uploaded = 0 AND billstatus = 1  AND ibt = '0' AND podate >=  
+        (SELECT date_start FROM rest_api.`run_once_config` WHERE active = '1' LIMIT 1) GROUP BY RefNo )
+        aa 
+        ON gg.refno = aa.refno AND ROUND(gg.`SubTotal1`,2) != aa.t_price
+        WHERE uploaded = 0 AND billstatus = 1  AND ibt = '0' AND podate >=  
+        (SELECT date_start FROM rest_api.`run_once_config` WHERE active = '1' LIMIT 1) GROUP BY gg.RefNo) a
+        INNER JOIN backend.supcus AS c
+        ON a.scode = c.code ");
+
+        $json = array(
+            'customer_guid' => 'Emart',
+	    'po_variance' => $po_variance->result_array()
+        );
+        $this->response($json);
+    }
 }
