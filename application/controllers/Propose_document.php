@@ -116,6 +116,7 @@ class Propose_document extends REST_Controller{
                 "total_child_count" => $output['total_child_count'],
                 'po_refno' => $output['po_refno'],
                 'refno' => $output['refno'],
+                'remark_h' => $output['remark_h'],
             );
             $this->db->insert('b2b_hub.propose_poex', $data_main);
 
@@ -188,6 +189,8 @@ class Propose_document extends REST_Controller{
                     'supplier_qoh' => $child['supplier_qoh'],
                     'entrytype' => $child['entrytype'],
                     'poex_guid' => $child['poex_guid'],
+                    'remark_c' => $child['remark_c'],
+                    'price_original' => $child['price_original'],
                     // 'imported' => 1,
                     // 'imported_at' => $this->db->query("SELECT now() as today")->row('today'),
                     // 'imported_by' => 'jiangrui',
