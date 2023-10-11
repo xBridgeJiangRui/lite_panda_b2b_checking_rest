@@ -142,7 +142,6 @@ class Scrape_pending_document_upload extends REST_controller
         JOIN backend.`xsetup` c
         WHERE uploaded = '$uploaded_status'
         AND billstatus = 1 
-        AND export_account NOT IN ('OK','ok','Ok') 
         AND ibt = '0' 
         AND grdate >= '$date_start'
         GROUP BY refno) aa
@@ -151,7 +150,6 @@ class Scrape_pending_document_upload extends REST_controller
         ON a.code = consign.code
         WHERE uploaded = '$uploaded_status' 
         AND billstatus = 1 
-        AND export_account NOT IN ('OK','ok','Ok') 
         AND ibt = '0' 
         AND grdate >= '$date_start'
         AND v_price <= grn_ignore_totalcostvariance_value 
@@ -164,7 +162,6 @@ class Scrape_pending_document_upload extends REST_controller
         INNER JOIN backend.`grmain_dncn` b 
         ON a.`RefNo` = b.`RefNo` 
         WHERE a.`uploaded` IN ('1','2')
-        AND b.export_account NOT IN ('OK', 'ok', 'Ok') 
         AND b.`uploaded` = '$uploaded_status'
         AND billstatus = 1 
         AND grdate >= '$date_start'
@@ -181,7 +178,7 @@ class Scrape_pending_document_upload extends REST_controller
         INNER JOIN backend.`dbnotechild` b 
         ON a.`RefNo` = b.`RefNo` 
         WHERE billstatus = 1 
-        AND export_account NOT IN ('OK', 'ok', 'Ok') 
+        AND a.ibt = '0'
         AND a.`uploaded` = '$uploaded_status'
         AND docdate >= '$date_start'
         $locgroup_in")->row('total_prdn_pending');
@@ -192,7 +189,7 @@ class Scrape_pending_document_upload extends REST_controller
         INNER JOIN backend.`cnnotechild` b 
         ON a.`RefNo` = b.`RefNo` 
         WHERE billstatus = 1 
-        AND export_account NOT IN ('OK', 'ok', 'Ok') 
+        AND a.ibt = '0'
         AND a.`uploaded` = '$uploaded_status'
         AND docdate >= '$date_start'
         $locgroup_in")->row('total_prcn_pending');
@@ -207,6 +204,7 @@ class Scrape_pending_document_upload extends REST_controller
         ON a.`cndn_guid` = b.`cndn_guid` 
         WHERE a.uploaded = '$uploaded_status' 
         AND posted = 1  
+        AND ibt = 0
         AND docdate >= '$date_start' 
         GROUP BY a.cndn_guid )aa 
         ON a.cndn_guid = aa.cndn_guid 
@@ -226,6 +224,7 @@ class Scrape_pending_document_upload extends REST_controller
         ON a.`cndn_guid` = b.`cndn_guid` 
         WHERE a.uploaded = '$uploaded_status' 
         AND posted = 1  
+        AND ibt = 0
         AND docdate >= '$date_start' 
         GROUP BY a.cndn_guid )aa 
         ON a.cndn_guid = aa.cndn_guid 
