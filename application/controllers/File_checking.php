@@ -462,6 +462,40 @@ class File_checking extends REST_Controller{
             ); 
         }
 
+        $mapping_data = $this->db->query("SELECT odm.* FROM b2b_doc.other_doc_mapping odm INNER JOIN b2b_doc.`other_doc` od ON odm.`cross_refno` = od.`refno` AND odm.`cross_supcode` = od.`supcode` WHERE od.`doc_uploaded` = 1");
+        if($mapping_data->num_rows() > 0)
+        {
+
+            $username = 'admin'; //get from rest.php
+            $password = '1234'; //get from rest.php
+
+            //$url = 'http://127.0.0.1/rest_api/index.php/panda_b2b/other_doc';
+            $url = $this->b2b_ip.'/rest_api/index.php/panda_b2b/other_doc_mapping';
+            // echo $url;die;
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Api-KEY: 123456"));
+            curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($mapping_data->result()));
+
+            $result = curl_exec($ch);
+            // echo $result;die;
+            $output =  json_decode($result);
+            $status = $output->message;
+
+            if($status == "true")
+            {
+                foreach($mapping_data->result() as $row)
+                {
+                    $this->db->query("UPDATE b2b_doc.other_doc_mapping SET exported = 1,exported_by = 'URL_TASK',exported_at = NOW() WHERE cross_refno = '$row->cross_refno' AND file_refno = '$row->file_refno' AND cross_supcode = '$row->cross_supcode' AND file_supcode = '$row->file_supcode' AND doctype = '$row->doctype'");
+                }
+            }
+        }
+
         $data = $this->db->query("SELECT '' as status,refno,supcode,supname,doctype,doctime,hq_update,uploaded,uploaded_at,created_by,created_at,(SELECT customer_guid FROM rest_api.run_once_config WHERE active = 1 LIMIT 1) as customer_guid FROM b2b_doc.other_doc WHERE hq_update = 0 AND doctime >= '$navition_doc_start_date'");
         // echo $this->db->last_query();die;
         if($data->num_rows() > 0)

@@ -491,7 +491,7 @@ class File_checking_autocount extends REST_Controller{
             $this->db->query("UPDATE b2b_doc.`other_doc` a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.file_refno AND a.supcode = b.file_supcode INNER JOIN backend.supcus c ON b.cross_supcode = c.accpdebit AND c.type<>'C' SET a.supname = c.name,a.hq_update = 0 WHERE a.supname = ''");
         }
 
-        $data = $this->db->query("SELECT '' AS status, b.`cross_refno` AS refno, b.`cross_supcode` AS supcode, a.supname, a.doctype, a.doctime, a.hq_update, a.uploaded, a.uploaded_at, a.created_by, a.created_at, (SELECT customer_guid FROM rest_api.run_once_config WHERE active = 1 LIMIT 1) AS customer_guid FROM b2b_doc.other_doc a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.`file_refno` AND a.supcode = b.file_supcode WHERE a.hq_update = 0 AND a.doctime >= '$autocount_doc_start_date' LIMIT 150");        
+        $data = $this->db->query("SELECT '' AS status, b.`cross_refno` AS refno, b.`cross_supcode` AS supcode, a.supname, a.doctype, a.doctime, a.hq_update, a.uploaded, a.uploaded_at, a.created_by, a.created_at, (SELECT customer_guid FROM rest_api.run_once_config WHERE active = 1 LIMIT 1) AS customer_guid FROM b2b_doc.other_doc a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.`file_refno` AND a.supcode = b.file_supcode WHERE a.hq_update = 0 AND a.doc_uploaded = '1' AND a.doctime >= '$autocount_doc_start_date' LIMIT 150");        
         // echo $this->db->last_query();die;
         if($data->num_rows() > 0)
         {
@@ -827,6 +827,258 @@ class File_checking_autocount extends REST_Controller{
                 ]
             ); 
         }
+    }
+
+    public function azure_blob_setting($type)
+    {
+        $result = $this->db->query("SELECT `value` FROM b2b_doc.b2b_setting_parameter WHERE `module` = 'azure_blob_storage' AND isactive = '1' AND `type` = '$type' LIMIT 1")->row('value');
+
+        return rtrim($result, '/');
+    }
+
+    public function other_doc_pdf_get()
+    {
+        ini_set('memory_limit','-1');
+        // ini_set('display_errors', 1);
+        // error_reporting(E_ALL);
+
+        $check_doc_uploaded_at = $this->db->query("SELECT COUNT(*) AS result FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'b2b_doc' AND TABLE_NAME = 'other_doc' AND COLUMN_NAME = 'doc_uploaded_at'")->row('result');
+        $check_doc_uploaded = $this->db->query("SELECT COUNT(*) AS result FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = 'b2b_doc' AND TABLE_NAME = 'other_doc' AND COLUMN_NAME = 'doc_uploaded'")->row('result');
+        $check_log_table = $this->db->query("SELECT COUNT(*) AS result FROM information_schema.tables WHERE table_schema = 'b2b_doc' AND table_name = 'doc_movement_log'")->row('result');
+
+        if($check_doc_uploaded_at == '0'){
+            $this->db->query("ALTER TABLE b2b_doc.`other_doc` 
+            ADD COLUMN `doc_uploaded_at` datetime DEFAULT NULL;");
+        }
+
+        if($check_doc_uploaded == '0'){
+            $this->db->query("ALTER TABLE b2b_doc.`other_doc` 
+            ADD COLUMN `doc_uploaded` smallint(6) DEFAULT '0';");
+        }
+
+        if($check_log_table == '0'){
+
+        	$this->db->query("CREATE TABLE b2b_doc.`doc_movement_log` (
+                `log_guid` varchar(32) NOT NULL,
+                `doc_refno` varchar(100) DEFAULT NULL,
+                `file_name` varchar(255) DEFAULT NULL,
+                `method` varchar(50) DEFAULT NULL,
+                `from` varchar(200) DEFAULT NULL,
+                `to` varchar(200) DEFAULT NULL,
+                `post_data` text,
+                `response` text,
+                `curl_info` text,
+                `datetime_start` timestamp NULL DEFAULT NULL,
+                `datetime_end` timestamp NULL DEFAULT NULL,
+                `status` tinyint(5) DEFAULT '0',
+                PRIMARY KEY (`log_guid`),
+                KEY `module` (`method`),
+                KEY `status` (`status`)
+              ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+            ");
+
+        }
+
+        $pending_list = $this->db->query("SELECT * FROM b2b_doc.other_doc WHERE `doc_uploaded` = '0' AND doctype NOT LIKE '%RMS%' LIMIT 40")->result_array();
+
+        if(sizeof($pending_list) == 0){
+
+            $this->response(
+                [
+                    'status' => TRUE,
+                    'message' => 'No data found'
+                ]
+
+            ); die;
+        }
+
+        $blob_link = $this->azure_blob_setting('blob_link') != '' ? $this->azure_blob_setting('blob_link') : 'https://api3.xbridge.my/';
+        $blob_username = $this->azure_blob_setting('blob_username') != '' ? $this->azure_blob_setting('blob_username') : 'panda';
+        $blob_password = $this->azure_blob_setting('blob_password') != '' ? $this->azure_blob_setting('blob_password') : '&_)GZh9Kd?D6gHRu';
+        $local_doc_path = $this->azure_blob_setting('local_doc_path') != '' ? $this->azure_blob_setting('local_doc_path') : '/home/autocount/SENT/';
+        $mount_root_folder = $this->azure_blob_setting('mount_root_folder') != '' ? $this->azure_blob_setting('mount_root_folder') : 'panda';
+
+        // print_r(sizeof($pending_list)); die;
+
+	    $success_upload = 0;
+
+        foreach ($pending_list as $list){
+
+            $log_guid = $this->db->query("SELECT REPLACE(UPPER(UUID()),'-','') AS uuid")->row('uuid');
+            $doc_type = $list['doctype'];
+            $supcode = $list['supcode'];
+            $doc_refno = $list['refno'];
+            $doc_time = $list['doctime'];
+            $formatted_doctime = date("dmyHis", strtotime($doc_time));
+            $doc_period = date("Y-m", strtotime($doc_time));
+
+            $file_name = $doc_type.'_'.$formatted_doctime.'_'.$supcode.'_'.$doc_refno;
+            $file_path = $local_doc_path.'/'.$doc_period;
+
+            $log_data = array(
+                'log_guid'          => $log_guid,
+                'doc_refno'         => $doc_refno,
+                'file_name'         => $file_name,
+                'method'            => 'azure_blob',
+                'from'              => $_SERVER['SERVER_NAME'],
+                'to'                => $blob_link,
+                'datetime_start'    => $this->db->query("SELECT NOW() as current_datetime")->row('current_datetime'),
+            );
+    
+            $this->db->insert('b2b_doc.doc_movement_log', $log_data);
+
+            $curl = curl_init();
+
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $blob_link.'/api/token/',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array('username' => $blob_username,'password' => $blob_password),
+            ));
+
+            $response = curl_exec($curl);
+
+            curl_close($curl);
+            
+            $result = json_decode($response, true);
+            $token = isset($result['access']) ? $result['access'] : '';
+
+            if($token != ''){
+
+		// echo $file_path.'/'.$file_name.'.pdf'; die;
+
+                $post_data = array(
+                    'file'                  => new CURLFILE($file_path.'/'.$file_name.'.pdf', 'application/pdf', $file_name.'.pdf'),
+                    'action'                => 'upload',
+                    'azure_directory_path'  => 'HQ/Accounting/'.$supcode.'/'.$doc_type.'/',
+                    'doc_type'              => 'STRB',
+                    'azure_container_name'  => $mount_root_folder,
+                    'filename'              => $file_name,
+                    'blob_path'             => ''
+                );
+
+                $curl = curl_init();
+
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $blob_link.'/azure/upload/',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => $post_data,
+                    CURLOPT_HTTPHEADER => array(
+                        'Authorization: Bearer '.$token
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                $info = curl_getinfo($curl);
+
+                curl_close($curl);
+                
+                $result = json_decode($response, true);
+
+                $status = isset($result['status']) ? $result['status'] : 'false';
+                $message = isset($result['message']) ? $result['message'] : '';
+
+                if($status == 'true' || $message == 'Status Code: 409 The specified blob already exists'){
+                    $this->db->query("UPDATE b2b_doc.other_doc SET `doc_uploaded` = '1', doc_uploaded_at = NOW() WHERE refno = '$doc_refno' AND supcode = '$supcode' AND doctype = '$doc_type' AND doc_uploaded = '0' LIMIT 1");
+                }else{
+		    $this->db->query("UPDATE b2b_doc.other_doc SET `doc_uploaded` = '99', doc_uploaded_at = NOW() WHERE refno = '$doc_refno' AND supcode = '$supcode' AND doctype = '$doc_type' AND doc_uploaded = '0' LIMIT 1");
+		}
+
+                $log_data = array(
+                    'post_data'     => json_encode($post_data),
+                    'response'      => $response,
+                    'curl_info'     => json_encode($info),
+                    'datetime_end'  => $this->db->query("SELECT NOW() as current_datetime")->row('current_datetime'),
+                    'status'        => $status == 'true' ? 1 : 0,
+                );
+        
+                $this->db->where('log_guid', $log_guid);
+                $this->db->update('b2b_doc.doc_movement_log', $log_data);
+
+                $success_upload++;
+            
+            }else{
+                $this->response(
+                    [
+                        'status' => FALSE,
+                        'message' => 'Invalid token'
+                    ]
+    
+                ); die;
+            }
+
+        }
+
+	    if(sizeof($pending_list) == 0){
+            $this->response(
+                [
+                    'status' => true,
+                    'message' => 'No file to be uploaded'
+                ]
+
+            ); die;
+        }
+
+        if(sizeof($pending_list) != 0 && $success_upload == 0){
+            $this->response(
+                [
+                    'status' => false,
+                    'message' => 'Fail to upload file'
+                ]
+
+            ); die;
+        }
+
+        if(sizeof($pending_list) == $success_upload){
+            $this->response(
+                [
+                    'status' => true,
+                    'message' => 'Successfully upload file'
+                ]
+
+            ); die;
+        }
+
+        if(sizeof($pending_list) != $success_upload){
+            $this->response(
+                [
+                    'status' => true,
+                    'message' => 'Success upload '.$success_upload.' file'
+                ]
+
+            ); die;
+        }
+    }
+
+    public function get_fail_upload_get()
+    {   
+        $todate = isset($_REQUEST['current_date']) ? $_REQUEST['current_date'] : date('Y-m-d');
+        $yesterdate = date('Y-m-d', strtotime($todate . ' -1 day'));
+
+	    $other_doc_start_date = isset($_REQUEST['other_doc_start_date']) ? $_REQUEST['other_doc_start_date'] : '2023-01-01';
+
+        $yesterday_total_doc = $this->db->query("SELECT COUNT(*) AS total_cnt FROM b2b_doc.other_doc WHERE doctype NOT LIKE '%RMS%' AND created_at BETWEEN '$yesterdate 09:00:00' AND '$todate 09:00:00'")->row('total_cnt');
+        $yesterday_total_fail = $this->db->query("SELECT COUNT(*) AS total_cnt FROM b2b_doc.other_doc WHERE `doc_uploaded` = '99' AND doctype NOT LIKE '%RMS%' AND created_at BETWEEN '$yesterdate 09:00:00' AND '$todate 09:00:00'")->row('total_cnt');
+        $all_time_fail = $this->db->query("SELECT COUNT(*) AS total_cnt FROM b2b_doc.other_doc WHERE `doc_uploaded` = '99' AND doctype NOT LIKE '%RMS%' and date(created_at) between '$other_doc_start_date' and curdate() ")->row('total_cnt');
+
+        $data = array(
+            'yesterday_total_doc'   => $yesterday_total_doc,
+            'yesterday_total_fail'  => $yesterday_total_fail,
+            'all_time_fail'         => $all_time_fail,
+        );
+
+        echo json_encode($data);
     }
 }
 
