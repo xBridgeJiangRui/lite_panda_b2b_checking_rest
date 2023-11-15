@@ -478,19 +478,6 @@ class File_checking_autocount extends REST_Controller{
             ); 
         }
 
-        $check_sup_name_empty = $this->db->query("SELECT a.refno FROM b2b_doc.other_doc a INNER JOIN b2b_doc.other_doc_mapping b ON a.refno = b.file_refno INNER JOIN backend.supcus c ON b.cross_supcode = c.code AND c.type<>'C' WHERE a.supname = ''");
-        if($check_sup_name_empty->num_rows() > 0)
-        {
-            $this->db->query("UPDATE b2b_doc.other_doc a INNER JOIN b2b_doc.other_doc_mapping b ON a.refno = b.file_refno INNER JOIN backend.supcus c ON b.cross_supcode = c.code AND c.type<>'C' SET a.supname = c.name,a.hq_update = 0 WHERE a.supname = ''");
-        }
-
-        $check_sup_name = $this->db->query("SELECT c.code,c.name,c.accpdebit,b.cross_supcode,b.cross_refno,a.* FROM b2b_doc.`other_doc` a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.file_refno AND a.supcode = b.file_supcode INNER JOIN backend.supcus c ON b.cross_supcode = c.accpdebit AND c.type<>'C' WHERE a.supname = ''");
-
-        if($check_sup_name->num_rows() > 0)
-        {
-            $this->db->query("UPDATE b2b_doc.`other_doc` a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.file_refno AND a.supcode = b.file_supcode INNER JOIN backend.supcus c ON b.cross_supcode = c.accpdebit AND c.type<>'C' SET a.supname = c.name,a.hq_update = 0 WHERE a.supname = ''");
-        }
-
         $data = $this->db->query("SELECT '' AS status, b.`cross_refno` AS refno, b.`cross_supcode` AS supcode, a.supname, a.doctype, a.doctime, a.hq_update, a.uploaded, a.uploaded_at, a.created_by, a.created_at, (SELECT customer_guid FROM rest_api.run_once_config WHERE active = 1 LIMIT 1) AS customer_guid FROM b2b_doc.other_doc a INNER JOIN b2b_doc.`other_doc_mapping` b ON a.refno = b.`file_refno` AND a.supcode = b.file_supcode WHERE a.hq_update = 0 AND a.doc_uploaded = '1' AND a.doctime >= '$autocount_doc_start_date' LIMIT 150");        
         // echo $this->db->last_query();die;
         if($data->num_rows() > 0)
@@ -787,6 +774,67 @@ class File_checking_autocount extends REST_Controller{
 
     public function reflow_doc_mapping_get()
     {
+        $check_sup_name_empty = $this->db->query("SELECT aa.* 
+        FROM
+        (
+        SELECT a.refno,b.cross_supcode FROM b2b_doc.other_doc a 
+        INNER JOIN b2b_doc.other_doc_mapping b 
+        ON a.refno = b.cross_refno 
+        AND a.supcode = b.cross_supcode
+        WHERE a.supname = '' 
+        GROUP BY b.cross_supcode
+        ) aa
+        INNER JOIN backend.supcus c 
+        ON aa.cross_supcode = c.Code 
+        AND c.Type<>'C' ")->result_array();
+
+        if(count($check_sup_name_empty) > 0)
+        {
+            foreach($check_sup_name_empty as $key => $value)
+            {
+                $update_cross_supcode = $value['cross_supcode'];
+
+                $get_backend_supcus = $this->db->query("SELECT `name` FROM backend.supcus WHERE `code` = '$update_cross_supcode' AND `type` <> 'C' LIMIT 1");
+
+                $new_supname = $get_backend_supcus->row('name');
+
+                $update_sql_1 = $this->db->query("UPDATE b2b_doc.other_doc
+                SET supname = '$new_supname', hq_update = 0, doc_uploaded = 0
+                WHERE supname = '' AND supcode = '$update_cross_supcode' ");
+            }
+        }
+
+        $check_sup_name = $this->db->query("SELECT aa.cross_supcode
+        FROM
+        (
+        SELECT b.cross_supcode,b.cross_refno,a.* 
+        FROM b2b_doc.`other_doc` a 
+        INNER JOIN b2b_doc.`other_doc_mapping` b 
+        ON a.refno = b.cross_refno 
+        AND a.supcode = b.cross_supcode
+        WHERE a.supname = ''
+        GROUP BY b.cross_supcode
+        ) aa
+        INNER JOIN backend.supcus c 
+        ON aa.cross_supcode = c.accpdebit 
+        AND c.Type<>'C' ")->result_array();
+
+        if(count($check_sup_name) > 0)
+        {
+            foreach($check_sup_name as $key => $value1)
+            {
+                $update_cross_supcode_val = $value1['cross_supcode'];
+
+                $get_backend_supcus_val = $this->db->query("SELECT `name` FROM backend.supcus WHERE `accpdebit` = '$update_cross_supcode_val' AND `type` <> 'C' LIMIT 1");
+
+                $new_supname_val = $get_backend_supcus_val->row('name');
+
+                $update_sql_1 = $this->db->query("UPDATE b2b_doc.other_doc
+                SET supname = '$new_supname_val', hq_update = 0, doc_uploaded = 0
+                WHERE supname = '' AND supcode = '$update_cross_supcode_val' ");
+            }
+        }
+        
         $get_doc = $this->db->query("SELECT a.* FROM b2b_doc.other_doc a LEFT JOIN b2b_doc.other_doc_mapping b ON a.refno = b.cross_refno WHERE a.uploaded = '0' AND a.supname <> '' AND b.cross_refno IS NULL AND DATE(a.created_at) != CURDATE() GROUP BY a.refno ");
 
         if($get_doc->num_rows() > 0)
@@ -797,7 +845,7 @@ class File_checking_autocount extends REST_Controller{
                 $other_doc_refno = $row->refno;
                 $other_doc_supcode = $row->supcode;
                 $datetime = $this->db->query("SELECT DATE_FORMAT(NOW(),'%d%m%y000000') AS `datetime`")->row('datetime');
-                $FtpFileName = $DocType.'_'.$datetime.'_'.$other_doc_supcode.'_'.$other_doc_refno;
+                $FtpFileName = $DocType.'_'.$datetime.'_'.$other_doc_supcode.'_'.$other_doc_refno.'.pdf';
 
                 $insert_data = $this->db->query("REPLACE INTO b2b_doc.other_doc_mapping (doctype,cross_refno,file_refno,cross_supcode,file_supcode,filename,created_at,created_by,updated_at,updated_by) VALUES('$DocType','$other_doc_refno','$other_doc_refno','$other_doc_supcode','$other_doc_supcode','$FtpFileName',NOW(),'reflow_agent','1001-01-01 00:00:00','reflow_agent') ");
             }
