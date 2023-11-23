@@ -1105,14 +1105,15 @@ class E_document_b2b_shoot extends REST_Controller{
 
                     if($check_before_insert->num_rows() > 0)
                     {
-                        $check_update_data = $check_before_insert->row('exported_to_hq');
+                        $check_update_data = $row->exported_to_hq;
 
                         if($check_update_data == '99')
                         {
                             $new_amt = $row->total_amt;
+                            $new_total_incl_tax = $row->total_incl_tax;
                             $count_data_from_b2b = $row->total_child_count;
 
-                            $update_data = $this->db->query("UPDATE $database2.$table2 SET total_amt = '$new_amt' , total_incl_tax = '$new_amt' , total_child_count = '$count_data_from_b2b' WHERE einv_guid = '$einv_guid' ");
+                            $update_data = $this->db->query("UPDATE $database2.$table2 SET total_amt = '$new_amt' , total_incl_tax = '$new_total_incl_tax' , total_child_count = '$count_data_from_b2b' WHERE einv_guid = '$einv_guid' ");
 
                             $this->db->query("INSERT INTO $database2.error_log(trans_guid,module,refno,message,created_by,created_at) VALUES (upper(replace(uuid(),'-','')),'consignment_e_invoice_main','$einv_guid','value updated due to missing generate','HQ_grab',NOW())");
                             $success_array['type'] = 'consignment_e_invoice_main';
