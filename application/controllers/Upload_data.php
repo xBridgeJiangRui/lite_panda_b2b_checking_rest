@@ -406,8 +406,7 @@ class Upload_data extends REST_Controller{
         WHERE LEFT(a.grdate,10) >= DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL - 3 MONTH) 
         AND a.billstatus = '1'
         AND a.uploaded = '1'
-	    AND IF(b.refno IS NOT NULL , b.uploaded = '2',b.refno IS NULL)
-        AND a.EXPORT_ACCOUNT NOT IN ('OK','ok','Ok') 
+	    AND IF(b.refno IS NOT NULL , b.uploaded = '2',b.refno IS NULL) 
         LIMIT 100");
 
         // print_r($data->num_rows());die;
